@@ -15,6 +15,12 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const dummyUsers = [
+  { email: 'admin@example.com', password: 'Admin123!', role: 'admin' },
+  { email: 'user@example.com', password: 'User123!', role: 'user' },
+];
+
+
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
@@ -27,15 +33,35 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
   });
 
+  // const onSubmit = async (data: FormData) => {
+  //   try {
+  //     const response = await axios.post('https://test-fe.mysellerpintar.com/api/login', data);
+  //     localStorage.setItem('token', response.data.data.token);
+  //     router.push('/articles');
+  //   } catch (err: any) {
+  //     setError(err.response?.data?.message || 'Login gagal');
+  //   }
+  // };
   const onSubmit = async (data: FormData) => {
-    try {
-      const response = await axios.post('https://test-fe.mysellerpintar.com/api/login', data);
-      localStorage.setItem('token', response.data.data.token);
-      router.push('/articles');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login gagal');
+    setError('');
+  
+    const user = dummyUsers.find(
+      (u) => u.email === data.email && u.password === data.password
+    );
+  
+    if (!user) {
+      setError('Email atau password salah');
+      return;
     }
+  
+    // Simulasi "token"
+    const fakeToken = 'token_' + user.email;
+    localStorage.setItem('token', fakeToken);
+    localStorage.setItem('role', user.role);
+  
+    router.push('/articles');
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
@@ -50,13 +76,13 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-black-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800" size={18} />
               <input
                 type="email"
                 {...register('email')}
-                className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
               />
             </div>
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
@@ -69,7 +95,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 {...register('password')}
-                className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
               />
             </div>
             {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}

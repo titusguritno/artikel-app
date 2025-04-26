@@ -126,7 +126,7 @@ export default function LoginPage() {
       <Card className="w-96 bg-gradient-to-br from-blue-50 to-white">
         <CardHeader className="flex flex-col items-center justify-center space-y-2">
           <img
-            src="https://logoipsum.com/logo/logo-1.svg"
+            src="public/images/logoipsum.svg"
             alt="Logo"
             className="w-28 h-10"
           />

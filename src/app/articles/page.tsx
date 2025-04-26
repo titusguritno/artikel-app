@@ -1,169 +1,157 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import api from "@/lib/axios"; // axios instance
+import { debounce } from "lodash"; // install lodash untuk debounce
+
+interface Article {
+  id: number;
+  title: string;
+  image: string;
+  created_at: string;
+  short_description: string;
+  category: { name: string };
+}
 
 export default function ArticlesPage() {
-  const [articles, setArticles] = useState<any[]>([]);
-  const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [category, setCategory] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
-
-  const articlesPerPage = 9;
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalData, setTotalData] = useState(0);
 
   useEffect(() => {
     fetchArticles();
-  }, []);
+  }, [debouncedSearch, category, page]);
 
   useEffect(() => {
-    if (searchTimeout) clearTimeout(searchTimeout);
+    const handler = debounce(() => {
+      setDebouncedSearch(search);
+    }, 400); // debounce 400ms
 
-    const timeout = setTimeout(() => {
-      handleFilter();
-    }, 400);
-
-    setSearchTimeout(timeout);
-  }, [searchQuery, category]);
+    handler();
+    return () => {
+      handler.cancel();
+    };
+  }, [search]);
 
   const fetchArticles = async () => {
     try {
-      const token = localStorage.getItem('token') || '';
-      const res = await fetch('https://test-fe.mysellerpintar.com/api/articles', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-
+      const res = await api.get("api/articles", {
+        params: {
+          search: debouncedSearch,
+          category,
+          page,
+          limit: 9, // Batasi 9 artikel per halaman
         },
       });
-
-      if (!res.ok) {
-        throw new Error('Gagal fetch data');
-      }
-
-      const data = await res.json();
-      // console.log (data)
-      setArticles(data.data || []);
-      setFilteredArticles(data.data || []);
-    } catch (err) {
-      console.error('Error fetching articles:', err instanceof Error ? err.message : err);
-    } finally {
-      setLoading(false);
+      setArticles(res.data.data);
+      setTotalData(res.data.total || 0); // pastikan API mengirim total
+    } catch (error) {
+      console.error(error);
     }
   };
 
-  const handleFilter = () => {
-    let filtered = [...articles];
-
-    if (searchQuery) {
-      filtered = filtered.filter(article =>
-        (article.name?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (category) {
-      filtered = filtered.filter(article => article.category === category);
-    }
-
-    setFilteredArticles(filtered);
-    setCurrentPage(1);
-  };
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCategory(e.target.value);
-  };
-
-  const indexOfLastArticle = currentPage * articlesPerPage;
-  const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
-  const currentArticles = filteredArticles.slice(indexOfFirstArticle, indexOfLastArticle);
-  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
-  console.log("currentArticles: ", currentArticles);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p>Loading articles...</p>
-        </div>
-      </div>
-    );
-  }
+  const totalPages = Math.ceil(totalData / 9);
 
   return (
-    <div className="min-h-screen bg-blue-50">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white text-center py-16 mb-8">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Artikel Kami</h1>
-        <p className="text-lg mb-8">Temukan berbagai artikel menarik di sini</p>
+    <div className="min-h-screen bg-white">
+      {/* BANNER */}
+      <div className="relative w-full bg-gradient-to-r from-blue-500 to-blue-700 py-16 flex flex-col items-center justify-center gap-6">
+        <h1 className="text-4xl md:text-5xl font-bold text-white text-center">
+          The Journal: Design Resources, Interviews, and Industry News
+        </h1>
 
-        {/* Search and Filter dalam Banner */}
-        <div className="flex flex-col md:flex-row justify-center gap-4 max-w-3xl mx-auto">
-          <select
-            value={category}
-            onChange={handleCategoryChange}
-            className="w-full md:w-1/3 px-4 py-2 border rounded text-black"
+        <div className="flex flex-col md:flex-row gap-4 w-full max-w-2xl mt-6">
+          {/* Dropdown kategori */}
+          <Select
+            onValueChange={(value) => {
+              setCategory(value === "all" ? "" : value);
+              setPage(1); // reset ke page 1 saat filter berubah
+            }}
           >
-            <option value="">Semua Kategori</option>
-            <option value="Teknologi">Teknologi</option>
-            <option value="Pendidikan">Pendidikan</option>
-            <option value="Olahraga">Olahraga</option>
-            <option value="Hiburan">Hiburan</option>
-          </select>
+            <SelectTrigger className="w-full md:w-1/2">
+              <SelectValue placeholder="Pilih Kategori" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Kategori</SelectItem>
+              <SelectItem value="Tech">Tech</SelectItem>
+              <SelectItem value="Design">Design</SelectItem>
+              <SelectItem value="Business">Business</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <input
-            type="text"
+          {/* Search bar */}
+          <Input
             placeholder="Cari artikel..."
-            value={searchQuery}
-            onChange={handleSearch}
-            className="w-full md:w-2/3 px-4 py-2 border rounded text-black"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-1/2"
           />
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4">
-        {/* List Artikel */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* {currentArticles.length > 0 ? (
-            currentArticles.map((article: any) => (
-              <div key={article.id} className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition">
-                <h2 className="text-2xl font-bold mb-2">{article.name?.name || 'Tanpa Judul'}</h2>
-                <p className="text-gray-600 mb-4">{article.category || 'Tidak ada kategori'}</p>
-                <button className="text-blue-600 hover:underline">Lihat Detail</button>
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-gray-500 col-span-full">Tidak ada artikel ditemukan.</p>
-          )} */}
-          <div>
-
+      {/* List Artikel */}
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {articles.map((article) => (
-          
-            <p key={article.id} className="text-black">Ttitle: {article.title}</p>
-            
-            
+            <Card
+              key={article.id}
+              className="hover:shadow-lg transition rounded-xl overflow-hidden"
+            >
+              <img
+                src={article.image || "https://via.placeholder.com/400x250"}
+                alt={article.title}
+                className="w-full h-48 object-cover"
+              />
+              <CardContent className="p-4">
+                <p className="text-xs text-gray-400 mb-1">
+                  {new Date(article.created_at).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+                <h2 className="text-lg font-semibold text-gray-800 line-clamp-2">
+                  {article.title}
+                </h2>
+                <p className="text-sm text-gray-600 mt-2 line-clamp-3">
+                  {article.short_description}
+                </p>
+              </CardContent>
+            </Card>
           ))}
-          </div>
-          
         </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-10 space-x-2">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-4 py-2 rounded ${currentPage === i + 1 ? 'bg-blue-600 text-white' : 'bg-white border'}`}
-              >
-                {i + 1}
-              </button>
-            ))}
+          <div className="flex justify-center mt-12 gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() =>
+                setPage((prev) => (prev < totalPages ? prev + 1 : prev))
+              }
+              disabled={page === totalPages}
+            >
+              Next
+            </Button>
           </div>
         )}
       </div>

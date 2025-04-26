@@ -1,34 +1,39 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function ArticlesPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true); // Tambahkan loading supaya tunggu localStorage ready
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    }
+    const checkAuth = () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+      console.log('TOKEN CHECK:', token); // Log token di console
+
+      if (!token) {
+        router.push('/login');
+      } else {
+        setLoading(false); // Kalau token ada, stop loading
+      }
+    };
+
+    checkAuth();
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    router.push('/login');
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-blue-600 text-lg">Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6">
-      <h1 className="text-3xl font-bold text-blue-700">📰 Halaman Artikel</h1>
-      
-      <button
-        onClick={handleLogout}
-        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition"
-      >
-        Logout
-      </button>
+    <div className="min-h-screen flex items-center justify-center">
+      <h1 className="text-3xl font-bold text-blue-700">📰 List Artikel Berhasil!</h1>
     </div>
   );
 }

@@ -1,121 +1,191 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import api from '@/lib/axios'; // axios instance
-import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
-const schema = z.object({
-  username: z.string().min(3, { message: 'Username minimal 3 karakter' }),
-  password: z.string().min(6, { message: 'Password minimal 6 karakter' }),
-  role: z.enum(['User', 'Admin'], {
-    required_error: 'Role wajib dipilih',
-  }),
+import { Eye, EyeOff } from "lucide-react";
+
+import api from "@/lib/axios";
+
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const FormSchema = z.object({
+  username: z.string().min(3, { message: "Username minimal 3 karakter" }),
+  password: z.string().min(6, { message: "Password minimal 6 karakter" }),
+  role: z.enum(["User", "Admin"], { required_error: "Role wajib dipilih" }),
 });
-
-type FormData = z.infer<typeof schema>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // 👁️ Control mata password
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      role: undefined,
+    },
   });
 
-  const onSubmit = async (data: FormData) => {
-    setError('');
-    setSuccess('');
+  const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+    setError("");
+    setSuccess("");
 
     try {
-      await api.post('api/auth/register', data); // Perbaiki endpoint jika perlu
-
-      setSuccess('Registrasi berhasil! Silakan login.');
+      await api.post("api/auth/register", values);
+      setSuccess("Registrasi berhasil! Silakan login.");
       setTimeout(() => {
-        router.push('/login');
+        router.push("/login");
       }, 1500);
     } catch (err: any) {
-      console.error('REGISTER ERROR:', err.response?.data);
-      setError(err.response?.data?.message || 'Registrasi gagal.');
+      console.error("REGISTER ERROR:", err.response?.data);
+      setError(err.response?.data?.message || "Registrasi gagal.");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
-        <h1 className="text-2xl font-semibold text-center text-blue-700 mb-6">👋 Logoipsum</h1>
+    <div className="h-screen flex items-center justify-center">
+      <Card className="w-96 bg-gradient-to-br from-blue-50 to-white">
+        <CardHeader className="flex flex-col items-center justify-center space-y-2">
+          <img
+            src="https://logoipsum.com/logo/logo-1.svg"
+            alt="Logo"
+            className="w-28 h-10"
+          />
+        </CardHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-left">
-          {/* Username */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input
-              type="text"
-              placeholder="Masukkan username"
-              {...register('username')}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
-            />
-            {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>}
-          </div>
-
-          {/* Password */}
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Masukkan password"
-              {...register('password')}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-black pr-10"
-            />
-            {/* Ikon show/hide password */}
-            <div
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-10 transform -translate-y-1/2 cursor-pointer text-gray-400"
+        <CardContent className="w-full">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="w-full flex flex-col gap-4"
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </div>
-            {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
-          </div>
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        placeholder="Username"
+                        className="w-full p-2 rounded-xl border"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Role */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              {...register('role')}
-              className="w-full px-4 py-2 border rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="">-- Pilih Role --</option>
-              <option value="User">User</option>
-              <option value="Admin">Admin</option>
-            </select>
-            {errors.role && <p className="text-xs text-red-500 mt-1">{errors.role.message}</p>}
-          </div>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="relative">
+                    <FormControl>
+                      <Input
+                        placeholder="Password"
+                        type={showPassword ? "text" : "password"}
+                        className="w-full p-2 rounded-xl border pr-10"
+                        {...field}
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="absolute right-2 top-2 text-gray-400 text-sm hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Error/Sukses Message */}
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-          {success && <p className="text-green-600 text-sm text-center">{success}</p>}
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <SelectTrigger className="w-full p-2 rounded-xl border">
+                          <SelectValue placeholder="-- Pilih Role --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="User">User</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
-          >
-            {isSubmitting ? 'Loading...' : 'Register'}
-          </button>
-        </form>
+              {error && (
+                <p className="text-red-500 text-sm text-center">{error}</p>
+              )}
+              {success && (
+                <p className="text-green-600 text-sm text-center">{success}</p>
+              )}
 
-        {/* Link ke Login */}
-        <p className="text-sm text-gray-600 mt-6 text-center">
-          Sudah punya akun?{' '}
-          <a href="/login" className="text-blue-600 hover:underline">Login</a>
-        </p>
-      </div>
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
+              >
+                Register
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+
+        <CardFooter>
+          <p className="text-sm text-gray-600 text-center w-full">
+            Sudah punya akun?{" "}
+            <Link href="/login" className="text-blue-600 hover:underline">
+              Login
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

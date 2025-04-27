@@ -1,9 +1,12 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff } from "lucide-react";
+import axios from "axios";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,15 +22,17 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import Link from "next/link";
-import axios from "axios";
 
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+
+// Validasi form
 const FormSchema = z.object({
   username: z.string().min(3, { message: "Username minimal 3 karakter" }),
   password: z.string().min(6, { message: "Password minimal 6 karakter" }),
 });
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -44,21 +49,21 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await axios.post("/api/auth/login", values);
+      const res = await axios.post("/api/admin/login", values); // 🔥 endpoint API admin
       const { user } = res.data;
 
-      // Simpan ke localStorage (optional)
+      // Simpan ke localStorage
       localStorage.setItem("username", user.username);
       localStorage.setItem("role", user.role);
 
       if (user.role === "Admin") {
-        router.push("/admin"); // Kalau admin
+        router.push("/admin/dashboard"); // 🔥 masuk ke dashboard admin
       } else {
-        router.push("/articles"); // Kalau user biasa
+        setError("Kamu bukan admin.");
       }
     } catch (err: any) {
-      console.error("Login Error:", err.response?.data);
-      setError(err.response?.data?.message || "Login gagal");
+      console.error("Login Admin Error:", err.response?.data);
+      setError(err.response?.data?.message || "Login gagal.");
     }
   };
 
@@ -66,14 +71,10 @@ export default function LoginPage() {
     <div className="h-screen flex items-center justify-center">
       <Card className="w-96 bg-gradient-to-br from-blue-50 to-white">
         <CardHeader className="flex flex-col items-center justify-center space-y-2">
-          <img
-            src="/assets/logoipsum.svg"
-            alt="Logoipsum"
-            className="w-30 h-30"
-          />
+          <img src="/assets/logoipsum.svg" alt="Logo" className="w-32 h-auto" />
         </CardHeader>
 
-        <CardContent className="w-full">
+        <CardContent>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
@@ -107,6 +108,7 @@ export default function LoginPage() {
                     <Button
                       type="button"
                       variant="ghost"
+                      size="sm"
                       className="absolute right-2 top-2 text-gray-400 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -125,7 +127,7 @@ export default function LoginPage() {
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
               >
-                Login
+                Login Admin
               </Button>
             </form>
           </Form>
@@ -133,9 +135,12 @@ export default function LoginPage() {
 
         <CardFooter>
           <p className="text-sm text-gray-600 text-center w-full">
-            Don't have an account?{" "}
-            <Link href="/register" className="text-blue-600 hover:underline">
-              Register
+            Belum punya akun?{" "}
+            <Link
+              href="/admin/register"
+              className="text-blue-600 hover:underline"
+            >
+              Daftar Admin
             </Link>
           </p>
         </CardFooter>

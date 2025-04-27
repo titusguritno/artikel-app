@@ -9,10 +9,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { debounce } from "lodash";
+import { LogOut } from "lucide-react";
+import Logout from "@/components/modals/logout";
 
 interface Article {
   id: number;
@@ -21,20 +39,19 @@ interface Article {
   created_at: string;
   short_description: string;
   category: { name: string };
-  username: string; // 🆕 tambahkan field username
 }
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
-  const articlesPerPage = 9;
+  const router = useRouter();
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -43,99 +60,128 @@ export default function ArticlesPage() {
 
   useEffect(() => {
     fetchArticles();
-  }, []);
+  }, [debouncedSearch, category, page]);
 
   useEffect(() => {
-    if (articles.length > 0) {
-      handleFiltering();
-    }
-  }, [debouncedSearch, category, articles]);
-
-  useEffect(() => {
-    const handler = debounce(() => {
+    const handler = setTimeout(() => {
       setDebouncedSearch(search);
     }, 400);
 
-    handler();
-    return () => {
-      handler.cancel();
-    };
+    return () => clearTimeout(handler);
   }, [search]);
 
   const fetchArticles = async () => {
     try {
-      const res = await api.get("api/articles");
-      const allArticles: Article[] = res.data.data;
-
-      // 🔥 Filter artikel hanya yang username == username login
-      const userArticles = username
-        ? allArticles.filter((article) => article.username === username)
-        : [];
-
-      setArticles(userArticles);
-      setTotalData(userArticles.length);
+      const res = await api.get("api/articles", {
+        params: {
+          search: debouncedSearch,
+          category,
+          page,
+          limit: 9,
+        },
+      });
+      setArticles(res.data.data);
+      setTotalData(res.data.total || 0);
     } catch (error) {
-      console.error("Error fetching articles:", error);
+      console.error(error);
     }
   };
 
-  const handleFiltering = () => {
-    let filtered = [...articles];
+  const totalPages = Math.ceil(totalData / 9);
 
-    if (category) {
-      filtered = filtered.filter(
-        (article) => article.category.name === category
-      );
+  const handleSearchEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setDebouncedSearch(search);
+      setPage(1);
     }
-
-    if (debouncedSearch) {
-      filtered = filtered.filter((article) =>
-        article.title.toLowerCase().includes(debouncedSearch.toLowerCase())
-      );
-    }
-
-    setFilteredArticles(filtered);
-    setPage(1); // reset page ke 1 setelah filter/search
   };
 
-  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
-
-  const displayedArticles = filteredArticles.slice(
-    (page - 1) * articlesPerPage,
-    page * articlesPerPage
-  );
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    router.push("/login");
+  };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white">
+      {/* Logout Modal */}
+      <Logout
+        open={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        onConfirm={handleLogout}
+      />
+
       {/* Banner */}
-      <div className="relative w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white pb-20 pt-10 md:pt-16">
-        <div className="absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4">
+      <div
+        className="relative w-full min-h-[600px] text-white bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/assets/background.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-800/80 to-blue-600/70 z-0"></div>
+
+        <div className="relative z-10 flex justify-between items-center px-6 py-4">
           <img
             src="/assets/logoipsum2.svg"
-            alt="Logoipsum"
-            className="w-24 h-24"
+            alt="Logo"
+            className="w-32 h-auto"
           />
-          <div className="text-sm font-medium">{username || "Guest"}</div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 px-2 py-1 hover:bg-blue-700 rounded-md"
+              >
+                <Avatar className="w-7 h-7 bg-blue-200">
+                  <AvatarFallback className="text-gray-700 font-semibold text-sm">
+                    {username ? username.charAt(0).toUpperCase() : "G"}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-bold text-white underline">
+                  {username || "Guest"}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-44 rounded-md shadow-md bg-white py-2"
+            >
+              <DropdownMenuItem
+                className="text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                onClick={() => router.push("/profile")}
+              >
+                My Account
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-sm text-red-500 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                onClick={() => setIsLogoutOpen(true)}
+              >
+                <LogOut size={16} /> Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        <div className="flex flex-col items-center justify-center text-center px-6 mt-20">
-          <p className="text-sm mb-2">Blog GenZet</p>
-          <h1 className="text-3xl md:text-5xl font-bold mb-3">
+        {/* Center Banner */}
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-8 md:pt-20">
+          <p className="text-sm md:text-base font-medium mb-2">Blog GenZet</p>
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-3">
             The Journal: Design Resources,
           </h1>
-          <h1 className="text-3xl md:text-5xl font-bold mb-3">
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-5">
             Interviews, and Industry News
           </h1>
-          <p className="text-lg mb-8">Your daily dose of design insights!</p>
+          <p className="text-lg md:text-xl mb-10">
+            Your daily dose of design insights!
+          </p>
 
-          <div className="flex flex-col md:flex-row gap-4 w-full max-w-2xl">
+          {/* Search & Select */}
+          <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl">
             <Select
               onValueChange={(value) => {
                 setCategory(value === "all" ? "" : value);
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-full md:w-1/2 bg-white text-black">
+              <SelectTrigger className="w-full md:w-1/3 bg-white text-black rounded-lg">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -149,23 +195,55 @@ export default function ArticlesPage() {
               </SelectContent>
             </Select>
 
-            <Input
-              placeholder="Search articles"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full md:w-1/2 bg-white text-black"
-            />
+            <div className="relative w-full md:w-2/3">
+              {/* Icon Search */}
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+                  />
+                </svg>
+              </div>
+
+              {/* Input Search */}
+              <Input
+                placeholder="Search articles"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setDebouncedSearch(search);
+                    setPage(1);
+                  }
+                }}
+                className="pl-10 bg-white text-black rounded-lg"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* List Artikel */}
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="flex-1 max-w-7xl mx-auto p-6">
+        <div className="text-sm text-gray-600 mb-6">
+          Showing: {articles.length} of {totalData} articles
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {displayedArticles.map((article) => (
+          {articles.map((article) => (
             <Card
               key={article.id}
-              className="hover:shadow-lg transition rounded-xl overflow-hidden"
+              onClick={() => router.push(`/articles/${article.id}`)}
+              className="hover:shadow-lg transition rounded-xl overflow-hidden cursor-pointer"
             >
               <img
                 src={article.image || "https://via.placeholder.com/400x250"}
@@ -193,25 +271,50 @@ export default function ArticlesPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-12 gap-4">
-            <Button
-              variant="outline"
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              onClick={() =>
-                setPage((prev) => (prev < totalPages ? prev + 1 : prev))
-              }
-              disabled={page === totalPages}
-            >
-              Next
-            </Button>
-          </div>
+          <Pagination className="mt-12">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  className={page === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <PaginationItem key={index}>
+                  <PaginationLink
+                    isActive={page === index + 1}
+                    onClick={() => setPage(index + 1)}
+                  >
+                    {index + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    setPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  className={
+                    page === totalPages ? "pointer-events-none opacity-50" : ""
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         )}
       </div>
+
+      {/* Footer */}
+      <footer className="bg-blue-600 text-white">
+        <div className="flex items-center justify-center w-full px-2 py-2 gap-2">
+          <img
+            src="/assets/logoipsum2.svg"
+            alt="Logoipsum"
+            className="w-20 h-20 object-contain"
+          />
+          <p className="text-sm">© 2025 Blog Genzet. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

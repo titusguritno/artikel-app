@@ -9,7 +9,7 @@ import * as z from "zod";
 
 import { Eye, EyeOff } from "lucide-react";
 
-import api from "@/lib/axios"; // axios instance
+import api from "@/lib/axios";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,16 +34,10 @@ const FormSchema = z.object({
   password: z.string().min(6, { message: "Password minimal 6 karakter" }),
 });
 
-// type FormData = z.infer<typeof schema>;
-
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
-  // const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-  //   resolver: zodResolver(schema),
-  // });
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -55,32 +49,26 @@ export default function LoginPage() {
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     try {
-      // Step 1: Login ➔ ambil token
       const loginRes = await api.post("api/auth/login", {
         username: values.username,
         password: values.password,
       });
 
       const token = loginRes.data.token;
-      console.log("TOKEN DAPAT:", token);
-
       if (!token) {
         setError("Login gagal. Token tidak ditemukan.");
         return;
       }
 
-      localStorage.setItem("token", token); // Simpan token
-      localStorage.setItem("username", values.username); // Simpan username
-      localStorage.setItem("password", values.password); // Simpan password
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", values.username);
+      localStorage.setItem("password", values.password);
 
-      // Step 2: Ambil profile
       const profileRes = await api.get("api/auth/profile", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log("PROFILE:", profileRes.data);
 
       const profileData = profileRes.data;
 
@@ -98,7 +86,6 @@ export default function LoginPage() {
 
       localStorage.setItem("role", role);
 
-      // Step 3: Redirect berdasarkan role
       if (role === "Admin") {
         router.push("/admin");
       } else {
@@ -109,7 +96,15 @@ export default function LoginPage() {
 
       if (err.response) {
         if (err.response.status === 401) {
-          setError("Username atau Password salah.");
+          // Tambahin pengecekan berdasarkan response message dari API
+          const message = err.response.data?.message || "";
+          if (message.toLowerCase().includes("user not found")) {
+            setError("Akun tidak terdaftar.");
+          } else if (message.toLowerCase().includes("wrong password")) {
+            setError("Password salah.");
+          } else {
+            setError("Username atau Password salah.");
+          }
         } else if (err.response.status === 404) {
           setError("Endpoint tidak ditemukan.");
         } else {
@@ -171,6 +166,7 @@ export default function LoginPage() {
                     <Button
                       variant="ghost"
                       className="absolute hover:bg-inherit right-0 -top-2 text-gray-400 text-sm"
+                      type="button"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
@@ -184,6 +180,11 @@ export default function LoginPage() {
                 )}
               />
 
+              {/* Tampilkan error kalau ada */}
+              {error && (
+                <p className="text-sm text-red-500 text-center">{error}</p>
+              )}
+
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
@@ -194,7 +195,6 @@ export default function LoginPage() {
           </Form>
         </CardContent>
 
-        {/* Link ke Register */}
         <CardFooter>
           <p className="text-sm text-gray-600 mt-6 text-center">
             Don't have an account?{" "}
@@ -202,7 +202,6 @@ export default function LoginPage() {
               Register
             </Link>
           </p>
-          {/* </div> */}
         </CardFooter>
       </Card>
     </div>

@@ -122,13 +122,13 @@ export default function RegisterPage() {
                     <Button
                       type="button"
                       variant="ghost"
-                      className="absolute right-2 top-2 text-gray-400 text-sm hover:bg-transparent"
+                      className="absolute right-2 top-0 text-gray-400 text-sm hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="w-3 h-3" />
+                        <EyeOff className="w-4 h-4" />
                       ) : (
-                        <Eye className="w-3 h-3" />
+                        <Eye className="w-4 h-4" />
                       )}
                     </Button>
                     <FormMessage />

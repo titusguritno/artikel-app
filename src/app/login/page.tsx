@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,8 +9,8 @@ import * as z from "zod";
 import { Eye, EyeOff } from "lucide-react";
 
 import api from "@/lib/axios";
-
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -19,16 +18,14 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
 
-// Validasi Zod
 const FormSchema = z.object({
   username: z.string().min(3, { message: "Username minimal 3 karakter" }),
   password: z.string().min(6, { message: "Password minimal 6 karakter" }),
@@ -48,13 +45,12 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
-    try {
-      const loginRes = await api.post("api/auth/login", {
-        username: values.username,
-        password: values.password,
-      });
+    setError("");
 
-      const token = loginRes.data.token;
+    try {
+      const res = await api.post("/api/auth/login", values);
+
+      const token = res.data.token;
       if (!token) {
         setError("Login gagal. Token tidak ditemukan.");
         return;
@@ -62,22 +58,15 @@ export default function LoginPage() {
 
       localStorage.setItem("token", token);
       localStorage.setItem("username", values.username);
-      localStorage.setItem("password", values.password);
 
-      const profileRes = await api.get("api/auth/profile", {
+      const profileRes = await api.get("/api/auth/profile", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       const profileData = profileRes.data;
-
-      let role = "";
-      if (profileData?.data?.role) {
-        role = profileData.data.role;
-      } else if (profileData?.role) {
-        role = profileData.role;
-      }
+      const role = profileData?.data?.role || profileData?.role;
 
       if (!role) {
         setError("Login gagal. Role tidak ditemukan.");
@@ -92,47 +81,37 @@ export default function LoginPage() {
         router.push("/articles");
       }
     } catch (err: any) {
-      console.error("ERROR:", err.response?.data);
-
+      console.error("Login Error:", err.response?.data);
       if (err.response) {
         if (err.response.status === 401) {
-          // Tambahin pengecekan berdasarkan response message dari API
-          const message = err.response.data?.message || "";
-          if (message.toLowerCase().includes("user not found")) {
-            setError("Akun tidak terdaftar.");
-          } else if (message.toLowerCase().includes("wrong password")) {
-            setError("Password salah.");
-          } else {
-            setError("Username atau Password salah.");
-          }
+          setError("Username atau Password salah.");
         } else if (err.response.status === 404) {
           setError("Endpoint tidak ditemukan.");
         } else {
           setError(err.response.data.message || "Login gagal.");
         }
-      } else if (err.request) {
-        setError("Tidak dapat terhubung ke server.");
       } else {
-        setError("Terjadi kesalahan.");
+        setError("Terjadi kesalahan server.");
       }
     }
   };
 
   return (
-    <div className="h-screen flex items-center justify-center">
-      <Card className="w-96 bg-gradient-to-br from-blue-50 to-white">
-        <CardHeader className="flex flex-col items-center justify-center space-y-2">
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+      <Card className="w-full max-w-sm p-6">
+        <CardHeader className="flex flex-col items-center justify-center">
           <img
             src="/assets/logoipsum.svg"
-            alt="Logoipsum"
-            className="w-30 h-30"
+            alt="Logo"
+            className="w-30 h-30 object-contain mb-4"
           />
         </CardHeader>
-        <CardContent className="w-full">
+
+        <CardContent>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="w-full flex flex-col gap-4"
+              className="flex flex-col gap-4"
             >
               <FormField
                 control={form.control}
@@ -142,7 +121,7 @@ export default function LoginPage() {
                     <FormControl>
                       <Input
                         placeholder="Username"
-                        className="w-full p-2 mt-8 rounded-xl border"
+                        className="rounded-lg"
                         {...field}
                       />
                     </FormControl>
@@ -150,6 +129,7 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="password"
@@ -157,32 +137,27 @@ export default function LoginPage() {
                   <FormItem className="relative">
                     <FormControl>
                       <Input
-                        placeholder="Password"
                         type={showPassword ? "text" : "password"}
-                        className="p-2 rounded-xl border w-full"
+                        placeholder="Password"
+                        className="rounded-lg pr-10"
                         {...field}
                       />
                     </FormControl>
                     <Button
-                      variant="ghost"
-                      className="absolute hover:bg-inherit right-0 -top-2 text-gray-400 text-sm"
                       type="button"
+                      variant="ghost"
+                      className="absolute right-2 top-0 text-gray-400 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? (
-                        <Eye className="w-4 h-4" />
-                      ) : (
-                        <EyeOff className="w-4 h-4" />
-                      )}
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </Button>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Tampilkan error kalau ada */}
               {error && (
-                <p className="text-sm text-red-500 text-center">{error}</p>
+                <p className="text-red-500 text-sm text-center">{error}</p>
               )}
 
               <Button
@@ -195,9 +170,9 @@ export default function LoginPage() {
           </Form>
         </CardContent>
 
-        <CardFooter>
-          <p className="text-sm text-gray-600 mt-6 text-center">
-            Don't have an account?{" "}
+        <CardFooter className="flex justify-center mt-2">
+          <p className="text-sm text-gray-600">
+            Belum punya akun?{" "}
             <Link href="/register" className="text-blue-600 hover:underline">
               Register
             </Link>

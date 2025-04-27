@@ -12,6 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LogOut } from "lucide-react";
+import Logout from "@/components/modals/logout";
 
 interface Article {
   id: number;
@@ -30,6 +32,7 @@ export default function ArticleDetailPage() {
   const [article, setArticle] = useState<Article | null>(null);
   const [otherArticles, setOtherArticles] = useState<Article[]>([]);
   const [username, setUsername] = useState<string | null>(null);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -76,29 +79,33 @@ export default function ArticleDetailPage() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-2 text-black hover:bg-transparent"
+                className="flex items-center gap-2 px-2 py-1 hover:bg-gray-500 rounded-md"
               >
-                <Avatar className="w-8 h-8 bg-blue-200">
-                  <AvatarFallback className="text-blue-700 font-bold">
+                <Avatar className="w-7 h-7 bg-blue-200">
+                  <AvatarFallback className="text-gray-700 font-semibold text-sm">
                     {username ? username.charAt(0).toUpperCase() : "G"}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-semibold underline">
+                <span className="text-sm font-bold text-black underline">
                   {username || "Guest"}
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
-                Profile
+            <DropdownMenuContent
+              align="end"
+              className="w-44 rounded-md shadow-md bg-white py-2"
+            >
+              <DropdownMenuItem
+                className="text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                onClick={() => router.push("/profile")}
+              >
+                My Account
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  localStorage.clear();
-                  router.push("/login");
-                }}
+                className="text-sm text-red-500 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                onClick={() => setIsLogoutOpen(true)}
               >
-                Logout
+                <LogOut size={16} /> Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

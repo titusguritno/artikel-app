@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import api from "@/lib/axios"; // axios instance
-import { debounce } from "lodash"; // install lodash untuk debounce
+import api from "@/lib/axios";
+import { debounce } from "lodash";
+import Image from "next/image";
 
 interface Article {
   id: number;
@@ -31,6 +32,14 @@ export default function ArticlesPage() {
   const [page, setPage] = useState(1);
   const [totalData, setTotalData] = useState(0);
 
+  // 🔥 Tambahkan untuk ambil username dari localStorage
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("username");
+    setUsername(savedUsername);
+  }, []);
+
   useEffect(() => {
     fetchArticles();
   }, [debouncedSearch, category, page]);
@@ -38,7 +47,7 @@ export default function ArticlesPage() {
   useEffect(() => {
     const handler = debounce(() => {
       setDebouncedSearch(search);
-    }, 400); // debounce 400ms
+    }, 400);
 
     handler();
     return () => {
@@ -53,11 +62,11 @@ export default function ArticlesPage() {
           search: debouncedSearch,
           category,
           page,
-          limit: 9, // Batasi 9 artikel per halaman
+          limit: 9,
         },
       });
       setArticles(res.data.data);
-      setTotalData(res.data.total || 0); // pastikan API mengirim total
+      setTotalData(res.data.total || 0);
     } catch (error) {
       console.error(error);
     }
@@ -68,37 +77,60 @@ export default function ArticlesPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* BANNER */}
-      <div className="relative w-full bg-gradient-to-r from-blue-500 to-blue-700 py-16 flex flex-col items-center justify-center gap-6">
-        <h1 className="text-4xl md:text-5xl font-bold text-white text-center">
-          The Journal: Design Resources, Interviews, and Industry News
-        </h1>
+      <div className="relative w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white pb-20 pt-10 md:pt-16">
+        {/* Top Header */}
+        <div className="absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <Image src="/logoipsum.svg" alt="Logo" width={30} height={30} />
+          </div>
 
-        <div className="flex flex-col md:flex-row gap-4 w-full max-w-2xl mt-6">
-          {/* Dropdown kategori */}
-          <Select
-            onValueChange={(value) => {
-              setCategory(value === "all" ? "" : value);
-              setPage(1); // reset ke page 1 saat filter berubah
-            }}
-          >
-            <SelectTrigger className="w-full md:w-1/2">
-              <SelectValue placeholder="Pilih Kategori" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Kategori</SelectItem>
-              <SelectItem value="Tech">Tech</SelectItem>
-              <SelectItem value="Design">Design</SelectItem>
-              <SelectItem value="Business">Business</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Username dari localStorage */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{username || "Guest"}</span>
+          </div>
+        </div>
 
-          {/* Search bar */}
-          <Input
-            placeholder="Cari artikel..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-1/2"
-          />
+        {/* Center Content */}
+        <div className="flex flex-col items-center justify-center text-center px-6 mt-20">
+          <p className="text-sm mb-2">Blog genzet</p>
+          <h1 className="text-3xl md:text-5xl font-bold mb-3">
+            The Journal : Design Resources,
+          </h1>
+          <h1 className="text-3xl md:text-5xl font-bold mb-3">
+            Interviews, and Industry News
+          </h1>
+          <p className="text-lg mb-8">Your daily dose of design insights!</p>
+
+          {/* Filter & Search */}
+          <div className="flex flex-col md:flex-row gap-4 w-full max-w-2xl">
+            <Select
+              onValueChange={(value) => {
+                setCategory(value === "all" ? "" : value);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-full md:w-1/2 bg-white text-black">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="Tech">Technology</SelectItem>
+                <SelectItem value="Design">Design</SelectItem>
+                <SelectItem value="Education">Education</SelectItem>
+                <SelectItem value="Business">Business</SelectItem>
+                <SelectItem value="Sport">Sport</SelectItem>
+                <SelectItem value="Entertainment">Entertainment</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Input
+              placeholder="Search articles"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full md:w-1/2 bg-white text-black"
+            />
+          </div>
         </div>
       </div>
 

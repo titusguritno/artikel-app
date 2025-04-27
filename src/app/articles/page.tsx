@@ -9,11 +9,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // 🔥 Tambahin ini
 import api from "@/lib/axios";
 import { debounce } from "lodash";
-import Image from "next/image";
 
 interface Article {
   id: number;
@@ -31,9 +47,9 @@ export default function ArticlesPage() {
   const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   const [totalData, setTotalData] = useState(0);
-
-  // 🔥 Tambahkan untuk ambil username dari localStorage
   const [username, setUsername] = useState<string | null>(null);
+
+  const router = useRouter(); // 🔥
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -48,7 +64,6 @@ export default function ArticlesPage() {
     const handler = debounce(() => {
       setDebouncedSearch(search);
     }, 400);
-
     handler();
     return () => {
       handler.cancel();
@@ -75,7 +90,7 @@ export default function ArticlesPage() {
   const totalPages = Math.ceil(totalData / 9);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white">
       {/* BANNER */}
       <div
         className="relative w-full min-h-[600px] text-white bg-cover bg-center bg-no-repeat"
@@ -83,52 +98,64 @@ export default function ArticlesPage() {
           backgroundImage: "url('/assets/background.jpg')",
         }}
       >
-        {/* Overlay gradasi biru transparan */}
+        {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-800/80 to-blue-600/70 z-0"></div>
 
-        {/* Header Topbar */}
+        {/* Header */}
         <div className="relative z-10 flex justify-between items-center px-8 py-6">
-          {/* Logo sebelah kiri */}
-          <div className="flex items-center gap-3">
-            <img
-              src="/assets/logoipsum2.svg"
-              alt="Logo"
-              className="w-32 h-auto object-contain"
-            />
-          </div>
-
-          {/* Username login di kanan */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm md:text-base font-semibold">
-              {username || "Guest"}
-              <div className="w-32 h-auto object-bottom-right"></div>
-            </span>
-          </div>
+          <img
+            src="/assets/logoipsum2.svg"
+            alt="Logo"
+            className="w-32 h-auto"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 text-white hover:bg-blue-700"
+              >
+                <Avatar className="w-8 h-8 bg-blue-200">
+                  <AvatarFallback className="text-blue-800 font-bold">
+                    {username ? username.charAt(0).toUpperCase() : "G"}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium underline">
+                  {username || "Guest"}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => router.push("/profile")}>
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("username");
+                  router.push("/login");
+                }}
+              >
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Center Content */}
+        {/* Center Banner */}
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-10 md:pt-20">
-          {/* Tagline kecil */}
-          <p className="text-sm md:text-base font-medium mb-2 tracking-wide">
-            Blog GenZet
-          </p>
-
-          {/* Title utama */}
+          <p className="text-sm md:text-base font-medium mb-2">Blog GenZet</p>
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-3">
             The Journal: Design Resources,
           </h1>
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-5">
             Interviews, and Industry News
           </h1>
-
-          {/* Subtitle */}
           <p className="text-lg md:text-xl mb-10">
             Your daily dose of design insights!
           </p>
 
           {/* Search & Select */}
           <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl">
-            {/* Dropdown Select kategori */}
             <Select
               onValueChange={(value) => {
                 setCategory(value === "all" ? "" : value);
@@ -149,7 +176,6 @@ export default function ArticlesPage() {
               </SelectContent>
             </Select>
 
-            {/* Search bar */}
             <Input
               placeholder="Search articles"
               value={search}
@@ -161,7 +187,13 @@ export default function ArticlesPage() {
       </div>
 
       {/* List Artikel */}
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="flex-1 max-w-7xl mx-auto p-6">
+        {/* Showing Info */}
+        <div className="text-sm text-gray-600 mb-6">
+          Showing: {articles.length} of {totalData} articles
+        </div>
+
+        {/* Articles Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {articles.map((article) => (
             <Card
@@ -194,54 +226,50 @@ export default function ArticlesPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-12">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-
-            {[...Array(totalPages)].map((_, index) => (
-              <Button
-                key={index}
-                size="sm"
-                variant={page === index + 1 ? "default" : "outline"}
-                onClick={() => setPage(index + 1)}
-              >
-                {index + 1}
-              </Button>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={page === totalPages}
-            >
-              Next
-            </Button>
-          </div>
+          <Pagination className="mt-12">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  className={page === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <PaginationItem key={index}>
+                  <PaginationLink
+                    isActive={page === index + 1}
+                    onClick={() => setPage(index + 1)}
+                  >
+                    {index + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    setPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  className={
+                    page === totalPages ? "pointer-events-none opacity-50" : ""
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         )}
-
-        <footer className="bg-blue-500 text-white w-full mt-20">
-          <div className="flex items-center justify-between w-full px-12 py-6">
-            {/* center */}
-            <div className="flex items-center gap-2">
-              <img
-                src="/assets/logoipsum2.svg"
-                alt="Logoipsum"
-                className="w-28 h-auto object-contain"
-              />
-            </div>
-
-            {/* center */}
-            <p className="text-sm">© 2025 Blog genzet. All rights reserved.</p>
-          </div>
-        </footer>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-blue-600 text-white">
+        <div className="flex items-center justify-center w-full px-6 py-6 gap-2">
+          <img
+            src="/assets/logoipsum2.svg"
+            alt="Logoipsum"
+            className="w-20 h-20 object-contain"
+          />
+          <p className="text-sm">© 2025 Blog genzet. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

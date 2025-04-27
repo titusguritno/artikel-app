@@ -77,44 +77,65 @@ export default function ArticlesPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* BANNER */}
-      <div className="relative w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white pb-20 pt-10 md:pt-16">
-        {/* Top Header */}
-        <div className="absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
+      <div
+        className="relative w-full min-h-[600px] text-white bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/assets/background.jpg')",
+        }}
+      >
+        {/* Overlay gradasi biru transparan */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-800/80 to-blue-600/70 z-0"></div>
+
+        {/* Header Topbar */}
+        <div className="relative z-10 flex justify-between items-center px-8 py-6">
+          {/* Logo sebelah kiri */}
+          <div className="flex items-center gap-3">
             <img
               src="/assets/logoipsum2.svg"
-              alt="Logoipsum"
-              className="w-25 h-25"
+              alt="Logo"
+              className="w-32 h-auto object-contain"
             />
           </div>
 
-          {/* Username dari localStorage */}
+          {/* Username login di kanan */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{username || "Guest"}</span>
+            <span className="text-sm md:text-base font-semibold">
+              {username || "Guest"}
+              <div className="w-32 h-auto object-bottom-right"></div>
+            </span>
           </div>
         </div>
 
         {/* Center Content */}
-        <div className="flex flex-col items-center justify-center text-center px-6 mt-20">
-          <p className="text-sm mb-2">Blog genzet</p>
-          <h1 className="text-3xl md:text-5xl font-bold mb-3">
-            The Journal : Design Resources,
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-10 md:pt-20">
+          {/* Tagline kecil */}
+          <p className="text-sm md:text-base font-medium mb-2 tracking-wide">
+            Blog GenZet
+          </p>
+
+          {/* Title utama */}
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-3">
+            The Journal: Design Resources,
           </h1>
-          <h1 className="text-3xl md:text-5xl font-bold mb-3">
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-5">
             Interviews, and Industry News
           </h1>
-          <p className="text-lg mb-8">Your daily dose of design insights!</p>
 
-          {/* Filter & Search */}
-          <div className="flex flex-col md:flex-row gap-4 w-full max-w-2xl">
+          {/* Subtitle */}
+          <p className="text-lg md:text-xl mb-10">
+            Your daily dose of design insights!
+          </p>
+
+          {/* Search & Select */}
+          <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl">
+            {/* Dropdown Select kategori */}
             <Select
               onValueChange={(value) => {
                 setCategory(value === "all" ? "" : value);
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-full md:w-1/2 bg-white text-black">
+              <SelectTrigger className="w-full md:w-1/3 bg-white text-black rounded-lg">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -128,11 +149,12 @@ export default function ArticlesPage() {
               </SelectContent>
             </Select>
 
+            {/* Search bar */}
             <Input
               placeholder="Search articles"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full md:w-1/2 bg-white text-black"
+              className="w-full md:w-2/3 bg-white text-black rounded-lg"
             />
           </div>
         </div>
@@ -172,24 +194,53 @@ export default function ArticlesPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-12 gap-4">
+          <div className="flex justify-center items-center gap-2 mt-12">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
               disabled={page === 1}
             >
               Previous
             </Button>
+
+            {[...Array(totalPages)].map((_, index) => (
+              <Button
+                key={index}
+                size="sm"
+                variant={page === index + 1 ? "default" : "outline"}
+                onClick={() => setPage(index + 1)}
+              >
+                {index + 1}
+              </Button>
+            ))}
+
             <Button
-              onClick={() =>
-                setPage((prev) => (prev < totalPages ? prev + 1 : prev))
-              }
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={page === totalPages}
             >
               Next
             </Button>
           </div>
         )}
+
+        <footer className="bg-blue-500 text-white w-full mt-20">
+          <div className="flex items-center justify-between w-full px-12 py-6">
+            {/* center */}
+            <div className="flex items-center gap-2">
+              <img
+                src="/assets/logoipsum2.svg"
+                alt="Logoipsum"
+                className="w-28 h-auto object-contain"
+              />
+            </div>
+
+            {/* center */}
+            <p className="text-sm">© 2025 Blog genzet. All rights reserved.</p>
+          </div>
+        </footer>
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { debounce } from "lodash";
+import Image from "next/image";
 
 interface Article {
   id: number;
@@ -21,20 +22,18 @@ interface Article {
   created_at: string;
   short_description: string;
   category: { name: string };
-  username: string; // 🆕 tambahkan field username
 }
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   const [totalData, setTotalData] = useState(0);
-  const [username, setUsername] = useState<string | null>(null);
 
-  const articlesPerPage = 9;
+  // 🔥 Tambahkan untuk ambil username dari localStorage
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -43,13 +42,7 @@ export default function ArticlesPage() {
 
   useEffect(() => {
     fetchArticles();
-  }, []);
-
-  useEffect(() => {
-    if (articles.length > 0) {
-      handleFiltering();
-    }
-  }, [debouncedSearch, category, articles]);
+  }, [debouncedSearch, category, page]);
 
   useEffect(() => {
     const handler = debounce(() => {
@@ -64,70 +57,56 @@ export default function ArticlesPage() {
 
   const fetchArticles = async () => {
     try {
-      const res = await api.get("api/articles");
-      const allArticles: Article[] = res.data.data;
-
-      // 🔥 Filter artikel hanya yang username == username login
-      const userArticles = username
-        ? allArticles.filter((article) => article.username === username)
-        : [];
-
-      setArticles(userArticles);
-      setTotalData(userArticles.length);
+      const res = await api.get("api/articles", {
+        params: {
+          search: debouncedSearch,
+          category,
+          page,
+          limit: 9,
+        },
+      });
+      setArticles(res.data.data);
+      setTotalData(res.data.total || 0);
     } catch (error) {
-      console.error("Error fetching articles:", error);
+      console.error(error);
     }
   };
 
-  const handleFiltering = () => {
-    let filtered = [...articles];
-
-    if (category) {
-      filtered = filtered.filter(
-        (article) => article.category.name === category
-      );
-    }
-
-    if (debouncedSearch) {
-      filtered = filtered.filter((article) =>
-        article.title.toLowerCase().includes(debouncedSearch.toLowerCase())
-      );
-    }
-
-    setFilteredArticles(filtered);
-    setPage(1); // reset page ke 1 setelah filter/search
-  };
-
-  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
-
-  const displayedArticles = filteredArticles.slice(
-    (page - 1) * articlesPerPage,
-    page * articlesPerPage
-  );
+  const totalPages = Math.ceil(totalData / 9);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Banner */}
+      {/* BANNER */}
       <div className="relative w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white pb-20 pt-10 md:pt-16">
+        {/* Top Header */}
         <div className="absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4">
-          <img
-            src="/assets/logoipsum2.svg"
-            alt="Logoipsum"
-            className="w-24 h-24"
-          />
-          <div className="text-sm font-medium">{username || "Guest"}</div>
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <img
+              src="/assets/logoipsum2.svg"
+              alt="Logoipsum"
+              className="w-25 h-25"
+            />
+          </div>
+
+          {/* Username dari localStorage */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{username || "Guest"}</span>
+          </div>
         </div>
 
+        {/* Center Content */}
         <div className="flex flex-col items-center justify-center text-center px-6 mt-20">
-          <p className="text-sm mb-2">Blog GenZet</p>
+          <p className="text-sm mb-2">Blog genzet</p>
           <h1 className="text-3xl md:text-5xl font-bold mb-3">
-            The Journal: Design Resources,
+            The Journal : Design Resources,
           </h1>
           <h1 className="text-3xl md:text-5xl font-bold mb-3">
             Interviews, and Industry News
           </h1>
           <p className="text-lg mb-8">Your daily dose of design insights!</p>
 
+          {/* Filter & Search */}
           <div className="flex flex-col md:flex-row gap-4 w-full max-w-2xl">
             <Select
               onValueChange={(value) => {
@@ -162,7 +141,7 @@ export default function ArticlesPage() {
       {/* List Artikel */}
       <div className="max-w-7xl mx-auto p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {displayedArticles.map((article) => (
+          {articles.map((article) => (
             <Card
               key={article.id}
               className="hover:shadow-lg transition rounded-xl overflow-hidden"

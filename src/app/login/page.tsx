@@ -70,6 +70,7 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("token", token); // Simpan token
+      localStorage.setItem("username", values.username); // Simpan username
 
       // Step 2: Ambil profile
       const profileRes = await api.get("api/auth/profile", {
@@ -80,8 +81,7 @@ export default function LoginPage() {
 
       console.log("PROFILE:", profileRes.data);
 
-      const profileData = profileRes.data?.data;
-      const username = profileData?.username || profileData?.name;
+      const profileData = profileRes.data;
 
       let role = "";
       if (profileData?.data?.role) {
@@ -127,9 +127,9 @@ export default function LoginPage() {
       <Card className="w-96 bg-gradient-to-br from-blue-50 to-white">
         <CardHeader className="flex flex-col items-center justify-center space-y-2">
           <img
-            src="https://logoipsum.com/logo/logo-1.svg"
-            alt="Logo"
-            className="w-28 h-10"
+            src="/assets/logoipsum.svg"
+            alt="Logoipsum"
+            className="w-30 h-30"
           />
         </CardHeader>
         <CardContent className="w-full">

@@ -71,6 +71,7 @@ export default function LoginPage() {
 
       localStorage.setItem("token", token); // Simpan token
       localStorage.setItem("username", values.username); // Simpan username
+      localStorage.setItem("password", values.password); // Simpan password
 
       // Step 2: Ambil profile
       const profileRes = await api.get("api/auth/profile", {

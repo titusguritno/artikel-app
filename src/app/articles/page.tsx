@@ -30,7 +30,7 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { debounce } from "lodash";
 import { LogOut } from "lucide-react";
-import Logout from "@/components/modals/logout"; // 🔥 sudah diimport
+import Logout from "@/components/modals/logout";
 
 interface Article {
   id: number;
@@ -49,7 +49,7 @@ export default function ArticlesPage() {
   const [page, setPage] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
-  const [isLogoutOpen, setIsLogoutOpen] = useState(false); // 🔥 tambahin ini
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const router = useRouter();
 
@@ -63,13 +63,11 @@ export default function ArticlesPage() {
   }, [debouncedSearch, category, page]);
 
   useEffect(() => {
-    const handler = debounce(() => {
+    const handler = setTimeout(() => {
       setDebouncedSearch(search);
     }, 400);
-    handler();
-    return () => {
-      handler.cancel();
-    };
+
+    return () => clearTimeout(handler);
   }, [search]);
 
   const fetchArticles = async () => {
@@ -91,6 +89,13 @@ export default function ArticlesPage() {
 
   const totalPages = Math.ceil(totalData / 9);
 
+  const handleSearchEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setDebouncedSearch(search);
+      setPage(1);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
@@ -106,16 +111,14 @@ export default function ArticlesPage() {
         onConfirm={handleLogout}
       />
 
-      {/* BANNER */}
+      {/* Banner */}
       <div
         className="relative w-full min-h-[600px] text-white bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/assets/background.jpg')" }}
       >
-        {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-800/80 to-blue-600/70 z-0"></div>
 
-        {/* Header */}
-        <div className="relative z-10 flex justify-between items-center px-8 py-6">
+        <div className="relative z-10 flex justify-between items-center px-6 py-4">
           <img
             src="/assets/logoipsum2.svg"
             alt="Logo"
@@ -158,7 +161,7 @@ export default function ArticlesPage() {
         </div>
 
         {/* Center Banner */}
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-10 md:pt-20">
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-8 md:pt-20">
           <p className="text-sm md:text-base font-medium mb-2">Blog GenZet</p>
           <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-3">
             The Journal: Design Resources,
@@ -192,29 +195,55 @@ export default function ArticlesPage() {
               </SelectContent>
             </Select>
 
-            <Input
-              placeholder="Search articles"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full md:w-2/3 bg-white text-black rounded-lg"
-            />
+            <div className="relative w-full md:w-2/3">
+              {/* Icon Search */}
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+                  />
+                </svg>
+              </div>
+
+              {/* Input Search */}
+              <Input
+                placeholder="Search articles"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setDebouncedSearch(search);
+                    setPage(1);
+                  }
+                }}
+                className="pl-10 bg-white text-black rounded-lg"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* List Artikel */}
       <div className="flex-1 max-w-7xl mx-auto p-6">
-        {/* Showing Info */}
         <div className="text-sm text-gray-600 mb-6">
           Showing: {articles.length} of {totalData} articles
         </div>
 
-        {/* Articles Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {articles.map((article) => (
             <Card
               key={article.id}
-              className="hover:shadow-lg transition rounded-xl overflow-hidden"
+              onClick={() => router.push(`/articles/${article.id}`)}
+              className="hover:shadow-lg transition rounded-xl overflow-hidden cursor-pointer"
             >
               <img
                 src={article.image || "https://via.placeholder.com/400x250"}
@@ -277,13 +306,13 @@ export default function ArticlesPage() {
 
       {/* Footer */}
       <footer className="bg-blue-600 text-white">
-        <div className="flex items-center justify-center w-full px-6 py-6 gap-2">
+        <div className="flex items-center justify-center w-full px-2 py-2 gap-2">
           <img
             src="/assets/logoipsum2.svg"
             alt="Logoipsum"
             className="w-20 h-20 object-contain"
           />
-          <p className="text-sm">© 2025 Blog genzet. All rights reserved.</p>
+          <p className="text-sm">© 2025 Blog Genzet. All rights reserved.</p>
         </div>
       </footer>
     </div>

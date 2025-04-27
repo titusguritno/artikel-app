@@ -77,9 +77,9 @@ export default function RegisterPage() {
       <Card className="w-96 bg-gradient-to-br from-blue-50 to-white">
         <CardHeader className="flex flex-col items-center justify-center space-y-2">
           <img
-            src="https://logoipsum.com/logo/logo-1.svg"
-            alt="Logo"
-            className="w-28 h-10"
+            src="/assets/logoipsum.svg"
+            alt="Logoipsum"
+            className="w-30 h-30"
           />
         </CardHeader>
 
@@ -126,9 +126,9 @@ export default function RegisterPage() {
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
+                        <EyeOff className="w-3 h-3" />
                       ) : (
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3 h-3" />
                       )}
                     </Button>
                     <FormMessage />

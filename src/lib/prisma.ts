@@ -1,6 +1,14 @@
-// lib/prisma.ts
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+declare global {
+  // biar pas develop ga bikin banyak koneksi ke DB
+  var prisma: PrismaClient | undefined;
+}
 
-export default prisma;
+export const prisma =
+  global.prisma ||
+  new PrismaClient({
+    log: ["query", "info", "warn", "error"], // optional: kalau mau lihat log query
+  });
+
+if (process.env.NODE_ENV !== "production") global.prisma = prisma;

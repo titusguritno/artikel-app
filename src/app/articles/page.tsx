@@ -12,7 +12,6 @@ import {
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -27,9 +26,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // 🔥 Tambahin ini
+import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { debounce } from "lodash";
+import { LogOut } from "lucide-react";
+import Logout from "@/components/modals/logout"; // 🔥 sudah diimport
 
 interface Article {
   id: number;
@@ -48,8 +49,9 @@ export default function ArticlesPage() {
   const [page, setPage] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false); // 🔥 tambahin ini
 
-  const router = useRouter(); // 🔥
+  const router = useRouter();
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -89,14 +91,25 @@ export default function ArticlesPage() {
 
   const totalPages = Math.ceil(totalData / 9);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    router.push("/login");
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      {/* Logout Modal */}
+      <Logout
+        open={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        onConfirm={handleLogout}
+      />
+
       {/* BANNER */}
       <div
         className="relative w-full min-h-[600px] text-white bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url('/assets/background.jpg')",
-        }}
+        style={{ backgroundImage: "url('/assets/background.jpg')" }}
       >
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-800/80 to-blue-600/70 z-0"></div>
@@ -112,30 +125,33 @@ export default function ArticlesPage() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-2 text-white hover:bg-blue-700"
+                className="flex items-center gap-2 px-2 py-1 hover:bg-blue-700 rounded-md"
               >
-                <Avatar className="w-8 h-8 bg-blue-200">
-                  <AvatarFallback className="text-blue-800 font-bold">
+                <Avatar className="w-7 h-7 bg-blue-200">
+                  <AvatarFallback className="text-gray-700 font-semibold text-sm">
                     {username ? username.charAt(0).toUpperCase() : "G"}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium underline">
+                <span className="text-sm font-bold text-white underline">
                   {username || "Guest"}
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
-                Profile
+            <DropdownMenuContent
+              align="end"
+              className="w-44 rounded-md shadow-md bg-white py-2"
+            >
+              <DropdownMenuItem
+                className="text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                onClick={() => router.push("/profile")}
+              >
+                My Account
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  localStorage.removeItem("token");
-                  localStorage.removeItem("username");
-                  router.push("/login");
-                }}
+                className="text-sm text-red-500 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                onClick={() => setIsLogoutOpen(true)}
               >
-                Logout
+                <LogOut size={16} /> Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

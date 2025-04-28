@@ -18,7 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { debounce } from "lodash";
@@ -65,12 +64,7 @@ export default function AdminDashboard() {
   const fetchArticles = async () => {
     try {
       const res = await api.get("api/articles", {
-        params: {
-          search: debouncedSearch,
-          category,
-          page,
-          limit: 10,
-        },
+        params: { search: debouncedSearch, category, page, limit: 10 },
       });
       setArticles(res.data.data);
       setTotalData(res.data.total);
@@ -102,9 +96,7 @@ export default function AdminDashboard() {
           <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
         </div>
 
-        {/* Semua menu digabung jadi satu */}
         <div className="flex flex-col gap-2 px-4">
-          {/* Button Articles */}
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700"
@@ -114,7 +106,6 @@ export default function AdminDashboard() {
             <span>Articles</span>
           </Button>
 
-          {/* Button Category */}
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700"
@@ -124,11 +115,10 @@ export default function AdminDashboard() {
             <span>Category</span>
           </Button>
 
-          {/* Button Logout */}
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700 mt-2"
-            onClick={() => setIsLogoutOpen(true)} // ⬅ ini buka modal
+            onClick={() => setIsLogoutOpen(true)}
           >
             <LogOut size={18} />
             <span>Logout</span>
@@ -139,7 +129,10 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="flex-1 bg-gray-50">
         {/* Topbar */}
-        <div className="flex justify-end p-4 shadow-sm">
+        <div className="flex items-center justify-between p-4 shadow-sm bg-white">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold text-gray-700">Articles</h1>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <div className="flex items-center gap-2 cursor-pointer">
@@ -160,21 +153,14 @@ export default function AdminDashboard() {
         </div>
 
         {/* Page Content */}
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-xl font-bold">Articles</h1>
-              <p className="text-sm text-gray-500">
-                Total Articles: {totalData}
-              </p>
-            </div>
-            <Button onClick={() => router.push("/admin/articles/add")}>
-              + Add Articles
-            </Button>
+        <div className="p-6 space-y-6">
+          {/* Total Articles */}
+          <div className="text-sm text-gray-500">
+            Total Articles: {totalData}
           </div>
 
           {/* Filters */}
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-4 items-center">
             <Select
               onValueChange={(val) => setCategory(val === "all" ? "" : val)}
             >
@@ -187,7 +173,6 @@ export default function AdminDashboard() {
                 <SelectItem value="Design">Design</SelectItem>
                 <SelectItem value="Education">Education</SelectItem>
                 <SelectItem value="Health">Health</SelectItem>
-                <SelectItem value="Education">Education</SelectItem>
                 <SelectItem value="Politic">Politic</SelectItem>
                 <SelectItem value="Business">Business</SelectItem>
                 <SelectItem value="Sport">Sport</SelectItem>
@@ -222,9 +207,16 @@ export default function AdminDashboard() {
                     setPage(1);
                   }
                 }}
-                className="pl-10 bg-white text-black rounded-lg"
+                className="w-100 pl-10 bg-white text-black rounded-lg"
               />
             </div>
+            {/* Add Articles */}
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg"
+              onClick={() => router.push("/admin/articles/add")}
+            >
+              + Add Articles
+            </Button>
           </div>
 
           {/* Table */}

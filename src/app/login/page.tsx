@@ -75,6 +75,7 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("role", role);
+      localStorage.setItem("token", token);
 
       if (role === "Admin") {
         router.push("/admin/articles");

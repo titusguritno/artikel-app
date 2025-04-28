@@ -1,5 +1,6 @@
 "use client";
 
+import { LayoutGrid, Tags, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { debounce } from "lodash";
+import Logout from "@/components/modals/logout";
 
 interface Article {
   id: number;
@@ -39,6 +41,7 @@ export default function AdminDashboard() {
   const [page, setPage] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [username, setUsername] = useState("");
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -86,36 +89,49 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen">
+      {/* Logout Modal */}
+      <Logout
+        open={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        onConfirm={handleLogout}
+      />
+
       {/* Sidebar */}
-      <div className="w-60 bg-blue-600 text-white flex flex-col justify-between py-6">
-        <div>
-          <div className="px-6 mb-10">
-            <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
-          </div>
-          <div className="flex flex-col gap-4 px-6">
-            <Button
-              variant="ghost"
-              className="justify-start"
-              onClick={() => router.push("/admin")}
-            >
-              Articles
-            </Button>
-            <Button
-              variant="ghost"
-              className="justify-start"
-              onClick={() => router.push("/admin/category")}
-            >
-              Category
-            </Button>
-          </div>
+      <div className="w-60 bg-blue-600 text-white flex flex-col py-6">
+        <div className="px-6 mb-10">
+          <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
         </div>
-        <div className="px-6">
+
+        {/* Semua menu digabung jadi satu */}
+        <div className="flex flex-col gap-2 px-4">
+          {/* Button Articles */}
           <Button
             variant="ghost"
-            className="justify-start"
-            onClick={handleLogout}
+            className="justify-start gap-3 text-white hover:bg-blue-700"
+            onClick={() => router.push("/admin")}
           >
-            Logout
+            <LayoutGrid size={18} />
+            <span>Articles</span>
+          </Button>
+
+          {/* Button Category */}
+          <Button
+            variant="ghost"
+            className="justify-start gap-3 text-white hover:bg-blue-700"
+            onClick={() => router.push("/admin/category")}
+          >
+            <Tags size={18} />
+            <span>Category</span>
+          </Button>
+
+          {/* Button Logout */}
+          <Button
+            variant="ghost"
+            className="justify-start gap-3 text-white hover:bg-blue-700 mt-2"
+            onClick={() => setIsLogoutOpen(true)} // ⬅ ini buka modal
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
           </Button>
         </div>
       </div>
@@ -179,36 +195,36 @@ export default function AdminDashboard() {
               </SelectContent>
             </Select>
 
-            {/* Icon Search */}
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
-                />
-              </svg>
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-3 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+                  />
+                </svg>
+              </div>
+              <Input
+                placeholder="Search articles"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setDebouncedSearch(search);
+                    setPage(1);
+                  }
+                }}
+                className="pl-10 bg-white text-black rounded-lg"
+              />
             </div>
-
-            <Input
-              placeholder="Search articles"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setDebouncedSearch(search);
-                  setPage(1);
-                }
-              }}
-              className="pl-10 bg-white text-black rounded-lg"
-            />
           </div>
 
           {/* Table */}

@@ -37,7 +37,7 @@ export default function AddArticlePage() {
   const [username, setUsername] = useState("");
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-
+  const [shortDescription, setShortDescription] = useState("");
   const [isEditorReady, setIsEditorReady] = useState(false);
 
   useEffect(() => {
@@ -108,15 +108,20 @@ export default function AddArticlePage() {
 
   const handlePreview = () => {
     if (!title || !content) {
-      alert("Please fill title and content to preview.");
+      alert("Please fill title and content first.");
       return;
     }
+
     const previewData = {
-      title,
-      content,
-      thumbnail: thumbnailUrl,
+      title: title,
+      image: thumbnailUrl || "https://via.placeholder.com/800x400",
+      created_at: new Date().toISOString(),
+      short_description:
+        shortDescription || "This is a short description preview.",
+      content: content,
     };
-    sessionStorage.setItem("preview-article", JSON.stringify(previewData));
+
+    localStorage.setItem("previewArticle", JSON.stringify(previewData));
     router.push("/admin/articles/preview");
   };
 
@@ -351,22 +356,21 @@ export default function AddArticlePage() {
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-4">
               <Button
+                type="button"
                 variant="outline"
-                onClick={() => router.push("/admin/articles")}
+                onClick={handlePreview}
+                disabled={isUploading}
               >
-                Cancel
-              </Button>
-              <Button variant="outline" onClick={handlePreview}>
                 Preview
               </Button>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                type="button"
                 onClick={handleUpload}
                 disabled={isUploading}
               >
-                {isUploading ? "Uploading..." : "Upload"}
+                {isUploading ? "Uploading..." : "Publish"}
               </Button>
             </div>
           </div>

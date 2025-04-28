@@ -4,13 +4,6 @@ import { LayoutGrid, Tags, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -20,27 +13,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
-import { debounce } from "lodash";
 import Logout from "@/components/modals/logout";
+import { debounce } from "lodash";
 
-interface Article {
+interface Category {
   id: number;
-  title: string;
-  image: string;
+  name: string;
   created_at: string;
-  category: { name: string };
 }
 
-export default function AdminDashboard() {
+export default function CategoryDashboard() {
   const router = useRouter();
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [page, setPage] = useState(1);
   const [totalData, setTotalData] = useState(0);
   const [username, setUsername] = useState("");
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -48,25 +38,23 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    fetchArticles();
-  }, [debouncedSearch, category, page]);
+    fetchCategories();
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
     const handler = debounce(() => {
       setDebouncedSearch(search);
     }, 500);
     handler();
-    return () => {
-      handler.cancel();
-    };
+    return () => handler.cancel();
   }, [search]);
 
-  const fetchArticles = async () => {
+  const fetchCategories = async () => {
     try {
-      const res = await api.get("api/articles", {
-        params: { search: debouncedSearch, category, page, limit: 10 },
+      const res = await api.get("api/categories", {
+        params: { page, limit: 10, search: debouncedSearch },
       });
-      setArticles(res.data.data);
+      setCategories(res.data.data);
       setTotalData(res.data.total);
     } catch (error) {
       console.error(error);
@@ -83,7 +71,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Logout Modal */}
       <Logout
         open={isLogoutOpen}
         onClose={() => setIsLogoutOpen(false)}
@@ -95,33 +82,30 @@ export default function AdminDashboard() {
         <div className="px-6 mb-10">
           <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
         </div>
-
         <div className="flex flex-col gap-2 px-4">
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700"
             onClick={() => router.push("/admin")}
           >
-            <LayoutGrid size={18} />
-            <span>Articles</span>
+            {" "}
+            <LayoutGrid size={18} /> <span>Articles</span>{" "}
           </Button>
-
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700"
             onClick={() => router.push("/admin/category")}
           >
-            <Tags size={18} />
-            <span>Category</span>
+            {" "}
+            <Tags size={18} /> <span>Category</span>{" "}
           </Button>
-
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700 mt-2"
             onClick={() => setIsLogoutOpen(true)}
           >
-            <LogOut size={18} />
-            <span>Logout</span>
+            {" "}
+            <LogOut size={18} /> <span>Logout</span>{" "}
           </Button>
         </div>
       </div>
@@ -130,9 +114,7 @@ export default function AdminDashboard() {
       <div className="flex-1 bg-gray-50">
         {/* Topbar */}
         <div className="flex items-center justify-between p-4 shadow-sm bg-white">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-gray-700">Articles</h1>
-          </div>
+          <h1 className="text-xl font-bold text-gray-700">Category</h1>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <div className="flex items-center gap-2 cursor-pointer">
@@ -154,33 +136,12 @@ export default function AdminDashboard() {
 
         {/* Page Content */}
         <div className="p-6 space-y-6">
-          {/* Total Articles */}
-          <div className="text-sm text-gray-500">
-            Total Articles: {totalData}
-          </div>
+          {/* Total Categories */}
+          <p className="text-sm text-gray-500">Total Categories: {totalData}</p>
 
-          {/* Filters */}
-          <div className="flex gap-4 items-center">
-            <Select
-              onValueChange={(val) => setCategory(val === "all" ? "" : val)}
-            >
-              <SelectTrigger className="w-48 text-black">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="Tech">Technology</SelectItem>
-                <SelectItem value="Design">Design</SelectItem>
-                <SelectItem value="Education">Education</SelectItem>
-                <SelectItem value="Health">Health</SelectItem>
-                <SelectItem value="Politic">Politic</SelectItem>
-                <SelectItem value="Business">Business</SelectItem>
-                <SelectItem value="Sport">Sport</SelectItem>
-                <SelectItem value="Entertainment">Entertainment</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="relative flex-1">
+          {/* Search and Add Button */}
+          <div className="flex justify-between items-center">
+            <div className="relative w-80">
               <div className="absolute inset-y-0 left-3 flex items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -198,24 +159,17 @@ export default function AdminDashboard() {
                 </svg>
               </div>
               <Input
-                placeholder="Search articles"
+                placeholder="Search categories"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    setDebouncedSearch(search);
-                    setPage(1);
-                  }
-                }}
-                className="w-100 pl-10 bg-white text-black rounded-lg"
+                className="pl-10 bg-white text-black rounded-lg"
               />
             </div>
-            {/* Add Articles */}
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg"
-              onClick={() => router.push("/admin/articles/add")}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg whitespace-nowrap"
+              onClick={() => router.push("/admin/category/add")}
             >
-              + Add Articles
+              + Add Category
             </Button>
           </div>
 
@@ -224,41 +178,24 @@ export default function AdminDashboard() {
             <table className="w-full text-sm text-gray-700">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="p-4 text-left">Thumbnail</th>
-                  <th className="p-4 text-left">Title</th>
                   <th className="p-4 text-left">Category</th>
                   <th className="p-4 text-left">Created At</th>
-                  <th className="p-4 text-left">Action</th>
+                  <th className="p-4 text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {articles.map((article) => (
-                  <tr key={article.id} className="border-b">
+                {categories.map((category) => (
+                  <tr key={category.id} className="border-b">
+                    <td className="p-4">{category.name}</td>
                     <td className="p-4">
-                      <img
-                        src={article.image || "https://via.placeholder.com/60"}
-                        alt="Thumb"
-                        className="w-14 h-14 object-cover rounded"
-                      />
+                      {new Date(category.created_at).toLocaleString("id-ID")}
                     </td>
-                    <td className="p-4">{article.title}</td>
-                    <td className="p-4">{article.category.name}</td>
-                    <td className="p-4">
-                      {new Date(article.created_at).toLocaleString("id-ID")}
-                    </td>
-                    <td className="p-4 space-x-2">
-                      <Button
-                        variant="link"
-                        size="sm"
-                        onClick={() => router.push(`/articles/${article.id}`)}
-                      >
-                        Preview
-                      </Button>
+                    <td className="p-4 flex justify-center gap-4">
                       <Button
                         variant="link"
                         size="sm"
                         onClick={() =>
-                          router.push(`/admin/articles/edit/${article.id}`)
+                          router.push(`/admin/category/edit/${category.id}`)
                         }
                       >
                         Edit

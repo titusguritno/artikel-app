@@ -68,7 +68,6 @@ export default function RegisterPage() {
       }, 1500);
     } catch (err: any) {
       console.error("REGISTER ERROR:", err.response?.data);
-      setError(err.response?.data?.message || "Registrasi gagal.");
     }
   };
 

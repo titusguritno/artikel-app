@@ -72,7 +72,13 @@ export default function ProfilePage() {
   }, []);
 
   const handleBack = () => {
-    router.push("/articles");
+    const role = localStorage.getItem("role");
+
+    if (role === "Admin") {
+      router.push("/admin/articles");
+    } else {
+      router.push("/articles");
+    }
   };
 
   if (loading) {

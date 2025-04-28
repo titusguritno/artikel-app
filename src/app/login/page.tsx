@@ -58,6 +58,7 @@ export default function LoginPage() {
 
       localStorage.setItem("token", token);
       localStorage.setItem("username", values.username);
+      localStorage.setItem("password", values.password);
 
       const profileRes = await api.get("/api/auth/profile", {
         headers: {
@@ -76,7 +77,7 @@ export default function LoginPage() {
       localStorage.setItem("role", role);
 
       if (role === "Admin") {
-        router.push("/admin");
+        router.push("/admin/articles");
       } else {
         router.push("/articles");
       }

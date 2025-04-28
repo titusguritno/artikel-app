@@ -86,7 +86,7 @@ export default function CategoryDashboard() {
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700"
-            onClick={() => router.push("/admin")}
+            onClick={() => router.push("/admin/articles")}
           >
             {" "}
             <LayoutGrid size={18} /> <span>Articles</span>{" "}

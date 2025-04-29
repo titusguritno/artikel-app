@@ -9,7 +9,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import api from "@/lib/axios";
 
 interface AddCategoryDialogProps {
   open: boolean;

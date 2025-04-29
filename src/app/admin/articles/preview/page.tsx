@@ -14,6 +14,7 @@ import { LogOut, ArrowLeft } from "lucide-react";
 import Logout from "@/components/modals/logout";
 import { Card, CardContent } from "@/components/ui/card";
 import api from "@/lib/axios";
+import Image from "next/image";
 
 interface Article {
   id: string;
@@ -92,10 +93,11 @@ export default function ArticlePreviewPage() {
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4 border-b bg-white">
         <div className="flex items-center gap-2">
-          <img
-            src="/assets/logoipsum.svg"
-            alt="Logoipsum"
-            className="w-24 h-auto object-contain"
+          <Image
+            src="/assets/logoipsum2.svg"
+            alt="Logo"
+            width={150}
+            height={150}
           />
         </div>
 
@@ -164,11 +166,12 @@ export default function ArticlePreviewPage() {
         </div>
 
         {/* Image */}
-        <div className="w-full mb-8 rounded-lg overflow-hidden">
-          <img
+        <div className="w-full flex justify-center items-center mb-8 rounded-lg overflow-hidden">
+          <Image
             src={article.image || "https://via.placeholder.com/800x400"}
             alt={article.title}
-            className="w-full h-auto max-h-[500px] object-cover mx-auto"
+            width={1000}
+            height={500}
           />
         </div>
 
@@ -191,10 +194,11 @@ export default function ArticlePreviewPage() {
                   key={item.id}
                   className="overflow-hidden shadow-md hover:shadow-lg transition-shadow"
                 >
-                  <img
+                  <Image
                     src={item.image || "https://via.placeholder.com/400x200"}
                     alt={item.title}
-                    className="w-full h-40 object-cover"
+                    width={350}
+                    height={200}
                   />
                   <CardContent className="p-4">
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">
@@ -223,10 +227,11 @@ export default function ArticlePreviewPage() {
       {/* Footer */}
       <footer className="bg-blue-600 text-white mt-20">
         <div className="flex items-center justify-center w-full px-2 py-2 gap-2">
-          <img
+          <Image
             src="/assets/logoipsum2.svg"
             alt="Logoipsum"
-            className="w-20 h-20 object-contain"
+            width={100}
+            height={100}
           />
           <p className="text-sm text-center">
             © 2025 Blog genzet. All rights reserved.

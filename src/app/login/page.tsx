@@ -25,6 +25,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import Link from "next/link";
+import Image from "next/image";
 
 const FormSchema = z.object({
   username: z.string().min(3, { message: "Username minimal 3 karakter" }),
@@ -100,16 +101,17 @@ export default function LoginPage() {
 
   return (
     <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-      <Card className="w-full max-w-sm p-6">
+      <Card className="w-full max-w-sm p-10 h-96">
         <CardHeader className="flex flex-col items-center justify-center">
-          <img
+          <Image
             src="/assets/logoipsum.svg"
             alt="Logo"
-            className="w-30 h-30 object-contain mb-4"
+            width={150}
+            height={150}
           />
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="mt-10">
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}

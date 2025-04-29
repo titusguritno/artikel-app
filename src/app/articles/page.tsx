@@ -28,14 +28,14 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
-import { debounce } from "lodash";
 import { LogOut } from "lucide-react";
 import Logout from "@/components/modals/logout";
+import Image from "next/image";
 
 interface Article {
   id: number;
   title: string;
-  image: string;
+  imageUrl: string;
   created_at: string;
   short_description: string;
   category: { name: string };
@@ -89,13 +89,6 @@ export default function ArticlesPage() {
 
   const totalPages = Math.ceil(totalData / 9);
 
-  const handleSearchEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      setDebouncedSearch(search);
-      setPage(1);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
@@ -119,10 +112,11 @@ export default function ArticlesPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-800/80 to-blue-600/70 z-0"></div>
 
         <div className="relative z-10 flex justify-between items-center px-6 py-4">
-          <img
+          <Image
             src="/assets/logoipsum2.svg"
             alt="Logo"
-            className="w-32 h-auto"
+            width={150}
+            height={150}
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -246,12 +240,13 @@ export default function ArticlesPage() {
             <Card
               key={article.id}
               onClick={() => router.push(`/articles/${article.id}`)}
-              className="hover:shadow-lg transition rounded-xl overflow-hidden cursor-pointer"
+              className="hover:shadow-lg transition rounded-xl overflow-hidden cursor-pointer flex items-center justify-center"
             >
-              <img
-                src={article.image || "https://via.placeholder.com/400x250"}
+              <Image
+                src={article.imageUrl || "https://via.placeholder.com/400x250"}
                 alt={article.title}
-                className="w-full h-48 object-cover"
+                width={350}
+                height={250}
               />
               <CardContent className="p-4">
                 <p className="text-xs text-gray-400 mb-1">
@@ -310,10 +305,11 @@ export default function ArticlesPage() {
       {/* Footer */}
       <footer className="bg-blue-600 text-white">
         <div className="flex items-center justify-center w-full px-2 py-2 gap-2">
-          <img
+          <Image
             src="/assets/logoipsum2.svg"
             alt="Logoipsum"
-            className="w-20 h-20 object-contain"
+            width={100}
+            height={100}
           />
           <p className="text-sm">© 2025 Blog Genzet. All rights reserved.</p>
         </div>

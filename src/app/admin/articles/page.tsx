@@ -99,13 +99,12 @@ export default function AdminDashboard() {
       toast("Failed delete", {
         description: "Something went wrong. Please try again.",
       });
+      console.error(err);
     } finally {
       setIsDeleteOpen(false);
       setSelectedArticleId(null);
     }
   };
-
-  console.log("IMAGE: ", articles);
 
   return (
     <>
@@ -125,7 +124,12 @@ export default function AdminDashboard() {
         {/* Sidebar */}
         <div className="w-60 bg-blue-600 text-white flex flex-col py-6">
           <div className="px-6 mb-10">
-            <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
+            <Image
+              src="/assets/logoipsum2.svg"
+              alt="Logo"
+              width={150}
+              height={150}
+            />
           </div>
 
           <div className="flex flex-col gap-2 px-4">

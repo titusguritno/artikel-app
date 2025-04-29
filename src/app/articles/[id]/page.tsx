@@ -14,11 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, ArrowLeft } from "lucide-react";
 import Logout from "@/components/modals/logout";
+import Image from "next/image";
 
 interface Article {
   id: number;
   title: string;
-  image: string;
+  imageUrl: string;
   created_at: string;
   short_description: string;
   content: string;
@@ -108,10 +109,11 @@ export default function ArticleDetailPage() {
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4 border-b bg-white">
         <div className="flex items-center gap-2">
-          <img
-            src="/assets/logoipsum.svg"
-            alt="Logoipsum"
-            className="w-25 h-auto object-contain"
+          <Image
+            src="/assets/logoipsum2.svg"
+            alt="Logo"
+            width={150}
+            height={150}
           />
         </div>
 
@@ -182,11 +184,12 @@ export default function ArticleDetailPage() {
         </div>
 
         {/* Image */}
-        <div className="w-full mb-8">
-          <img
-            src={article.image || "https://via.placeholder.com/800x400"}
+        <div className="w-full mb-8 flex items-center justify-center">
+          <Image
+            src={article.imageUrl || "https://via.placeholder.com/800x400"}
             alt={article.title}
-            className="rounded-lg w-full object-cover max-h-[500px] mx-auto"
+            width={1000}
+            height={500}
           />
         </div>
 
@@ -213,12 +216,14 @@ export default function ArticleDetailPage() {
                   onClick={() => router.push(`/articles/${other.id}`)}
                   className="hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden cursor-pointer group"
                 >
-                  <div className="relative w-full h-40">
-                    <img
-                      src={other.image || "https://via.placeholder.com/400x250"}
+                  <div className=" w-full flex items-center justify-center">
+                    <Image
+                      src={
+                        other.imageUrl || "https://via.placeholder.com/400x200"
+                      }
                       alt={other.title}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
+                      width={350}
+                      height={200}
                     />
                   </div>
                   <div className="p-4">
@@ -245,10 +250,11 @@ export default function ArticleDetailPage() {
       {/* Footer */}
       <footer className="bg-blue-600 text-white mt-20">
         <div className="flex items-center justify-center w-full px-2 py-2 gap-2">
-          <img
+          <Image
             src="/assets/logoipsum2.svg"
             alt="Logoipsum"
-            className="w-20 h-20 object-contain"
+            width={100}
+            height={100}
           />
           <p className="text-sm">© 2025 Blog genzet. All rights reserved.</p>
         </div>

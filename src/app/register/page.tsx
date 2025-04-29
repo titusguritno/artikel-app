@@ -25,7 +25,6 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Select,
@@ -34,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
 
 const FormSchema = z.object({
   username: z.string().min(3, { message: "Username minimal 3 karakter" }),
@@ -66,17 +66,20 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push("/login");
       }, 1500);
-    } catch (err: any) {}
+    } catch (err: any) {
+      console.error(err);
+    }
   };
 
   return (
     <div className="h-screen flex items-center justify-center">
-      <Card className="w-96 bg-gradient-to-br from-blue-50 to-white">
-        <CardHeader className="flex flex-col items-center justify-center space-y-2">
-          <img
+      <Card className="w-96 h-96 bg-gradient-to-br from-blue-50 to-white">
+        <CardHeader className="flex items-center justify-center my-5">
+          <Image
             src="/assets/logoipsum.svg"
-            alt="Logoipsum"
-            className="w-30 h-30"
+            alt="Logo"
+            width={150}
+            height={150}
           />
         </CardHeader>
 

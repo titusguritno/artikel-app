@@ -15,6 +15,7 @@ import {
 import { LogOut, ArrowLeft } from "lucide-react";
 import axios from "axios";
 import Logout from "@/components/modals/logout";
+import Image from "next/image";
 interface UserData {
   id: string;
   username: string;
@@ -217,10 +218,11 @@ export default function ProfilePage() {
       {/* Footer */}
       <footer className="bg-blue-600 text-white py-6">
         <div className="flex items-center justify-center gap-2">
-          <img
+          <Image
             src="/assets/logoipsum2.svg"
             alt="Logoipsum"
-            className="w-24 h-auto object-contain"
+            width={100}
+            height={100}
           />
           <p className="text-sm">© 2025 Blog genzet. All rights reserved.</p>
         </div>

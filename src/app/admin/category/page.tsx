@@ -19,6 +19,7 @@ import AddCategoryDialog from "@/components/modals/AddCategory";
 import { toast } from "sonner";
 import EditategoryDialog from "@/components/modals/EditCategory";
 import DeleteModal from "@/components/modals/delete";
+import Image from "next/image";
 
 interface Category {
   id: number;
@@ -173,7 +174,12 @@ export default function CategoryDashboard() {
       {/* Sidebar */}
       <div className="w-60 bg-blue-600 text-white flex flex-col py-6">
         <div className="px-6 mb-10">
-          <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
+          <Image
+            src="/assets/logoipsum2.svg"
+            alt="Logo"
+            width={150}
+            height={150}
+          />
         </div>
         <div className="flex flex-col gap-2 px-4">
           <Button

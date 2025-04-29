@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { LayoutGrid, Tags, LogOut, ImageIcon } from "lucide-react";
 import api from "@/lib/axios";
 import Logout from "@/components/modals/logout";
+import Image from "next/image";
 
 export default function EditArticlePage() {
   const router = useRouter();
@@ -164,7 +165,12 @@ export default function EditArticlePage() {
       {/* Sidebar */}
       <div className="w-60 bg-blue-600 text-white flex flex-col py-6">
         <div className="px-6 mb-10">
-          <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
+          <Image
+            src="/assets/logoipsum2.svg"
+            alt="Logo"
+            width={150}
+            height={150}
+          />
         </div>
         <div className="flex flex-col gap-2 px-4">
           <Button
@@ -225,10 +231,11 @@ export default function EditArticlePage() {
                 <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                   {thumbnailUrl ? (
                     <div className="relative w-full h-32">
-                      <img
+                      <Image
                         src={thumbnailUrl || "/default-thumbnail.jpg"}
                         alt="Thumbnail preview"
-                        className="w-full h-full object-contain"
+                        width={200}
+                        height={200}
                       />
                       <div className="absolute top-0 right-0 flex flex-col m-2 space-y-2">
                         <Button

@@ -26,6 +26,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import Logout from "@/components/modals/logout";
 import api from "@/lib/axios";
+import Image from "next/image";
 
 export default function AddArticlePage() {
   const router = useRouter();
@@ -38,7 +39,6 @@ export default function AddArticlePage() {
   const [username, setUsername] = useState("");
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [shortDescription, setShortDescription] = useState("");
   const [isEditorReady, setIsEditorReady] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -89,8 +89,8 @@ export default function AddArticlePage() {
     }
     try {
       setIsUploading(true);
-      const uploadRes = await api.post("api/upload", thumbnailFile.name);
-      const uploadedThumbnailUrl = uploadRes.data.imageUrl;
+      await api.post("api/upload", thumbnailFile.name);
+
       const articleData = {
         title: title.trim(),
         content: content.trim(),
@@ -124,8 +124,6 @@ export default function AddArticlePage() {
       title,
       image: thumbnailUrl || "https://via.placeholder.com/800x400",
       created_at: new Date().toISOString(),
-      short_description:
-        shortDescription || "This is a short description preview.",
       content,
     };
     localStorage.setItem("previewArticle", JSON.stringify(previewData));
@@ -154,7 +152,13 @@ export default function AddArticlePage() {
       >
         <div className="flex flex-col items-start py-6 px-6 text-gray-800 md:text-white">
           <div className="mb-6 w-full flex justify-between items-center md:justify-start">
-            <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
+            <Image
+              src="/assets/logoipsum2.svg"
+              alt="Logo"
+              width={150}
+              height={150}
+            />
+
             <button
               className="md:hidden block"
               onClick={() => setIsSidebarOpen(false)}
@@ -254,9 +258,11 @@ export default function AddArticlePage() {
                 <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                   {thumbnailUrl ? (
                     <div className="relative w-full h-32">
-                      <img
+                      <Image
                         src={thumbnailUrl}
                         alt="Thumbnail preview"
+                        width={200}
+                        height={200}
                         className="w-full h-full object-contain"
                       />
                       <div className="absolute top-0 right-0 flex flex-col m-2 space-y-2">

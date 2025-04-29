@@ -24,11 +24,12 @@ import { debounce } from "lodash";
 import Logout from "@/components/modals/logout";
 import DeleteModal from "@/components/modals/delete";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface Article {
   id: number;
   title: string;
-  image: string;
+  imageUrl: string;
   created_at: string;
   category: { name: string };
 }
@@ -103,6 +104,8 @@ export default function AdminDashboard() {
       setSelectedArticleId(null);
     }
   };
+
+  console.log("IMAGE: ", articles);
 
   return (
     <>
@@ -264,10 +267,13 @@ export default function AdminDashboard() {
                   {articles.map((article) => (
                     <tr key={article.id} className="border-b">
                       <td className="p-4">
-                        <img
+                        {/* <p>{article.imageUrl}</p> */}
+                        <Image
                           src={
-                            article.image || "https://via.placeholder.com/60"
+                            article.imageUrl || "https://via.placeholder.com/60"
                           }
+                          width={100}
+                          height={100}
                           alt="Thumb"
                           className="w-14 h-14 object-cover rounded"
                         />

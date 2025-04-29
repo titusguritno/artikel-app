@@ -48,7 +48,6 @@ export default function CategoryDashboard() {
     null
   );
 
-  // Fixing fetchCategories with useCallback
   const fetchCategories = useCallback(async () => {
     try {
       const res = await api.get("api/categories", {
@@ -60,30 +59,26 @@ export default function CategoryDashboard() {
     } catch (error) {
       console.error(error);
     }
-  }, [debouncedSearch, page]); // List dependencies
+  }, [debouncedSearch, page]);
 
   console.log("Category: ", categories);
 
-  // Fixing debounceSearchHandler dependencies
   const debounceSearchHandler = useCallback(
     debounce((value: string) => {
       setDebouncedSearch(value);
     }, 500),
-    [] // Empty dependencies since it only uses `setDebouncedSearch` which is stable
+    []
   );
 
-  // Fetch saved username on initial render
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
     setUsername(savedUsername || "Guest");
   }, []);
 
-  // Fetch categories when `page` or `debouncedSearch` changes
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Update `debouncedSearch` when `search` changes
   useEffect(() => {
     debounceSearchHandler(search);
   }, [search, debounceSearchHandler]);

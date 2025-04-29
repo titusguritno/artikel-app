@@ -68,7 +68,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchArticles();
-  }, [fetchArticles]); // 👈 now depending on stable fetchArticles
+  }, [fetchArticles]);
 
   useEffect(() => {
     const handler = debounce(() => {

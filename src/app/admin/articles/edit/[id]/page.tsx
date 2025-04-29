@@ -75,7 +75,7 @@ export default function EditArticlePage() {
       toast.error("Failed to fetch article.");
       router.push("/admin/articles");
     }
-  }, [id, router]); // 👈 because fetchArticle uses 'id' and 'router'
+  }, [id, router]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -84,7 +84,7 @@ export default function EditArticlePage() {
     } catch (error) {
       console.error(error);
     }
-  }, []); // 👈 fetchCategories doesn't depend on anything
+  }, []);
 
   useEffect(() => {
     if (!id) return;

@@ -68,7 +68,7 @@ export default function ArticlesPage() {
     } catch (error) {
       console.error(error);
     }
-  }, [debouncedSearch, category, page]); // List dependencies that the function relies on
+  }, [debouncedSearch, category, page]);
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -77,7 +77,7 @@ export default function ArticlesPage() {
 
   useEffect(() => {
     fetchArticles();
-  }, [fetchArticles]); // Now depends on the stable fetchArticles function
+  }, [fetchArticles]);
 
   useEffect(() => {
     const handler = setTimeout(() => {

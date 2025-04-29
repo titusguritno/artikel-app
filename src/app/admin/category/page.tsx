@@ -94,6 +94,7 @@ export default function CategoryDashboard() {
       });
       fetchCategories();
     } catch (error) {
+      console.error(error);
       toast("Failed to add category", {
         description: "Something went wrong. Please try again.",
       });
@@ -109,6 +110,7 @@ export default function CategoryDashboard() {
       setIsEditDialogOpen(false);
       fetchCategories();
     } catch (error) {
+      console.error(error);
       toast("Failed to edit category", {
         description: "Something went wrong. Please try again.",
       });
@@ -127,6 +129,7 @@ export default function CategoryDashboard() {
       });
       fetchCategories();
     } catch (error) {
+      console.error(error);
       toast("Failed to delete category", {
         description: "Something went wrong. Please try again.",
       });

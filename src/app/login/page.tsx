@@ -83,19 +83,8 @@ export default function LoginPage() {
       } else {
         router.push("/articles");
       }
-    } catch (err: any) {
-      console.error("Login Error:", err.response?.data);
-      if (err.response) {
-        if (err.response.status === 401) {
-          setError("Username atau Password salah.");
-        } else if (err.response.status === 404) {
-          setError("Endpoint tidak ditemukan.");
-        } else {
-          setError(err.response.data.message || "Login gagal.");
-        }
-      } else {
-        setError("Terjadi kesalahan server.");
-      }
+    } catch (err) {
+      console.error("Login Error:", err);
     }
   };
 

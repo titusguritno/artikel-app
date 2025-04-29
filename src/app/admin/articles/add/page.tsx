@@ -28,6 +28,11 @@ import Logout from "@/components/modals/logout";
 import api from "@/lib/axios";
 import Image from "next/image";
 
+interface ICategory {
+  id: string;
+  name: string;
+}
+
 export default function AddArticlePage() {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
@@ -90,7 +95,6 @@ export default function AddArticlePage() {
     try {
       setIsUploading(true);
       await api.post("api/upload", thumbnailFile.name);
-
       const articleData = {
         title: title.trim(),
         content: content.trim(),
@@ -104,12 +108,18 @@ export default function AddArticlePage() {
       toast.success("Article published successfully!");
       localStorage.removeItem("draftArticle");
       router.push("/admin/articles");
-    } catch (error: any) {
-      console.error("Upload error:", error.response?.data || error.message);
-      alert(
-        error.response?.data?.message ||
-          "Failed to upload article. Please try again."
-      );
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        const err = error as { response?: { data?: { message?: string } } };
+        console.error("Upload error:", err.response?.data || "Unknown error");
+        alert(
+          err.response?.data?.message ||
+            "Failed to upload article. Please try again."
+        );
+      } else {
+        console.error("Upload error:", error);
+        alert("Failed to upload article. Please try again.");
+      }
     } finally {
       setIsUploading(false);
     }
@@ -261,8 +271,8 @@ export default function AddArticlePage() {
                       <Image
                         src={thumbnailUrl}
                         alt="Thumbnail preview"
-                        width={200}
-                        height={200}
+                        width={150}
+                        height={150}
                         className="w-full h-full object-contain"
                       />
                       <div className="absolute top-0 right-0 flex flex-col m-2 space-y-2">
@@ -339,7 +349,7 @@ export default function AddArticlePage() {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat: any) => (
+                  {categories.map((cat: ICategory) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       {cat.name}
                     </SelectItem>

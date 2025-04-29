@@ -66,7 +66,7 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push("/login");
       }, 1500);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
     }
   };

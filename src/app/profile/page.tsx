@@ -60,9 +60,13 @@ export default function ProfilePage() {
           ...res.data,
           password: savedPassword,
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err.message || "Failed to fetch user");
+        if (err instanceof Error) {
+          setError(err.message || "Failed to fetch user");
+        } else {
+          setError("Failed to fetch user");
+        }
       } finally {
         setLoading(false);
       }

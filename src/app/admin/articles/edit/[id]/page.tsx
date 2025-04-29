@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,12 +26,17 @@ import api from "@/lib/axios";
 import Logout from "@/components/modals/logout";
 import Image from "next/image";
 
+interface ICategory {
+  id: string;
+  name: string;
+}
+
 export default function EditArticlePage() {
   const router = useRouter();
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef(null);
 
   const [username, setUsername] = useState("Guest");
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
@@ -44,16 +49,7 @@ export default function EditArticlePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (!id) return;
-
-    const savedUsername = localStorage.getItem("username");
-    if (savedUsername) setUsername(savedUsername);
-    fetchArticle();
-    fetchCategories();
-  }, [id]);
-
-  const fetchArticle = async () => {
+  const fetchArticle = useCallback(async () => {
     try {
       const res = await api.get(`/api/articles/${id}`);
       const data = res.data;
@@ -74,24 +70,29 @@ export default function EditArticlePage() {
         setThumbnailUrl(null);
       }
       setIsLoading(false);
-    } catch (error: any) {
-      console.error(
-        "Error Fetching Article:",
-        error.response?.data || error.message
-      );
+    } catch (error) {
+      console.error("Error Fetching Article:", error);
       toast.error("Failed to fetch article.");
       router.push("/admin/articles");
     }
-  };
+  }, [id, router]); // 👈 because fetchArticle uses 'id' and 'router'
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await api.get("/api/categories");
       setCategories(res.data.data || []);
     } catch (error) {
       console.error(error);
     }
-  };
+  }, []); // 👈 fetchCategories doesn't depend on anything
+
+  useEffect(() => {
+    if (!id) return;
+    const savedUsername = localStorage.getItem("username");
+    if (savedUsername) setUsername(savedUsername);
+    fetchArticle();
+    fetchCategories();
+  }, [id, fetchArticle, fetchCategories]);
 
   const handleThumbnailChange = (file: File) => {
     if (file) {
@@ -132,9 +133,9 @@ export default function EditArticlePage() {
 
       toast.success("Article updated successfully!");
       router.push("/admin/articles");
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Failed to update article.");
+      toast.error("Failed to update article.");
     } finally {
       setIsUploading(false);
     }
@@ -311,7 +312,7 @@ export default function EditArticlePage() {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat: any) => (
+                  {categories.map((cat: ICategory) => (
                     <SelectItem key={cat.id} value={String(cat.id)}>
                       {cat.name}
                     </SelectItem>

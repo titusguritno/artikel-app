@@ -25,7 +25,6 @@ export default function EditCategoryDialog({
   categoryName,
   onSendData,
 }: AddCategoryDialogProps) {
-  const [edited, setEdited] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async () => {
@@ -36,7 +35,6 @@ export default function EditCategoryDialog({
 
     setError("");
     onSubmit();
-    setEdited("");
     onClose();
   };
 
@@ -57,7 +55,6 @@ export default function EditCategoryDialog({
             placeholder="Input Category"
             defaultValue={categoryName}
             onChange={(e) => {
-              setEdited(e.target.value);
               onSendData(e.target.value);
               if (error) setError("");
             }}

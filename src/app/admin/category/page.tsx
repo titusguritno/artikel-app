@@ -22,7 +22,7 @@ import DeleteModal from "@/components/modals/delete";
 import Image from "next/image";
 
 interface Category {
-  id: number;
+  id: string;
   name: string;
   created_at: string;
 }
@@ -38,34 +38,18 @@ export default function CategoryDashboard() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState({ id: 0, name: "" });
+  const [selectedCategory, setSelectedCategory] = useState({
+    id: "",
+    name: "",
+  });
   const [editedCategoryName, setEditedCategoryName] = useState("");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
 
-  useEffect(() => {
-    const savedUsername = localStorage.getItem("username");
-    setUsername(savedUsername || "Guest");
-  }, []);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [page, debouncedSearch]);
-
-  const debounceSearchHandler = useCallback(
-    debounce((value) => {
-      setDebouncedSearch(value);
-    }, 500),
-    []
-  );
-
-  useEffect(() => {
-    debounceSearchHandler(search);
-  }, [search, debounceSearchHandler]);
-
-  const fetchCategories = async () => {
+  // Fixing fetchCategories with useCallback
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await api.get("api/categories", {
         params: { page, limit: 10, search: debouncedSearch },
@@ -76,7 +60,33 @@ export default function CategoryDashboard() {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [debouncedSearch, page]); // List dependencies
+
+  console.log("Category: ", categories);
+
+  // Fixing debounceSearchHandler dependencies
+  const debounceSearchHandler = useCallback(
+    debounce((value: string) => {
+      setDebouncedSearch(value);
+    }, 500),
+    [] // Empty dependencies since it only uses `setDebouncedSearch` which is stable
+  );
+
+  // Fetch saved username on initial render
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("username");
+    setUsername(savedUsername || "Guest");
+  }, []);
+
+  // Fetch categories when `page` or `debouncedSearch` changes
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // Update `debouncedSearch` when `search` changes
+  useEffect(() => {
+    debounceSearchHandler(search);
+  }, [search, debounceSearchHandler]);
 
   const totalPages = Math.ceil(totalData / 10);
 
@@ -101,11 +111,11 @@ export default function CategoryDashboard() {
     }
   };
 
-  const handleEditCategory = async (id: any, name: string) => {
+  const handleEditCategory = async (id: string, name: string) => {
     try {
       await api.put(`/api/categories/${id}`, { name });
       toast("Category edited", {
-        description: `Category "${id}" has been edited.`,
+        description: `Category with ID "${id}" has been edited.`,
       });
       setIsEditDialogOpen(false);
       fetchCategories();
@@ -121,7 +131,7 @@ export default function CategoryDashboard() {
     setEditedCategoryName(value);
   };
 
-  const handleDeleteCategory = async (id: number) => {
+  const handleDeleteCategory = async (id: string) => {
     try {
       await api.delete(`/api/categories/${id}`);
       toast("Category deleted", {
@@ -135,7 +145,7 @@ export default function CategoryDashboard() {
       });
     }
   };
-  const openDeleteModal = (id: number) => {
+  const openDeleteModal = (id: string) => {
     setSelectedCategoryId(id);
     setIsDeleteOpen(true);
   };
@@ -188,7 +198,7 @@ export default function CategoryDashboard() {
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700"
-            onClick={() => router.push("/admin")}
+            onClick={() => router.push("/admin/articles")}
           >
             {" "}
             <LayoutGrid size={18} /> <span>Articles</span>{" "}

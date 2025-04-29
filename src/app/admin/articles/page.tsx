@@ -1,7 +1,7 @@
 "use client";
 
 import { LayoutGrid, Tags, LogOut } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -49,6 +49,18 @@ export default function AdminDashboard() {
     number | string | null
   >(null);
 
+  const fetchArticles = useCallback(async () => {
+    try {
+      const res = await api.get("api/articles", {
+        params: { search: debouncedSearch, category, page, limit: 10 },
+      });
+      setArticles(res.data.data);
+      setTotalData(res.data.total);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [debouncedSearch, category, page]); // 👈 because fetchArticles depends on these
+
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
     setUsername(savedUsername || "Guest");
@@ -56,7 +68,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchArticles();
-  }, [debouncedSearch, category, page]);
+  }, [fetchArticles]); // 👈 now depending on stable fetchArticles
 
   useEffect(() => {
     const handler = debounce(() => {
@@ -67,18 +79,6 @@ export default function AdminDashboard() {
       handler.cancel();
     };
   }, [search]);
-
-  const fetchArticles = async () => {
-    try {
-      const res = await api.get("api/articles", {
-        params: { search: debouncedSearch, category, page, limit: 10 },
-      });
-      setArticles(res.data.data);
-      setTotalData(res.data.total);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const totalPages = Math.ceil(totalData / 10);
 
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               className="justify-start gap-3 text-white hover:bg-blue-700"
-              onClick={() => router.push("/admin")}
+              onClick={() => router.push("/admin/articles")}
             >
               <LayoutGrid size={18} />
               <span>Articles</span>

@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { LogOut } from "lucide-react";
@@ -53,24 +53,7 @@ export default function ArticlesPage() {
 
   const router = useRouter();
 
-  useEffect(() => {
-    const savedUsername = localStorage.getItem("username");
-    setUsername(savedUsername);
-  }, []);
-
-  useEffect(() => {
-    fetchArticles();
-  }, [debouncedSearch, category, page]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 400);
-
-    return () => clearTimeout(handler);
-  }, [search]);
-
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       const res = await api.get("api/articles", {
         params: {
@@ -85,7 +68,24 @@ export default function ArticlesPage() {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [debouncedSearch, category, page]); // List dependencies that the function relies on
+
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("username");
+    setUsername(savedUsername || "Guest");
+  }, []);
+
+  useEffect(() => {
+    fetchArticles();
+  }, [fetchArticles]); // Now depends on the stable fetchArticles function
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [search]);
 
   const totalPages = Math.ceil(totalData / 9);
 

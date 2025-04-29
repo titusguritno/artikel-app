@@ -1,11 +1,12 @@
 "use client";
 
 import { useRef } from "react";
-import { LayoutGrid, Tags, LogOut, ArrowLeft, ImageIcon } from "lucide-react";
+import { LayoutGrid, Tags, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
+import { Editor } from "@tinymce/tinymce-react";
 import api from "@/lib/axios";
 import Logout from "@/components/modals/logout";
-import { Editor } from "@tinymce/tinymce-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { ImageIcon } from "lucide-react";
 
 export default function AddArticlePage() {
   const router = useRouter();
@@ -40,19 +41,36 @@ export default function AddArticlePage() {
   const [shortDescription, setShortDescription] = useState("");
   const [isEditorReady, setIsEditorReady] = useState(false);
 
-  useEffect(() => {
-    setIsEditorReady(true); // Set to true once the component has mounted on the client
-  }, []);
-
   const editorRef = useRef(null);
 
   useEffect(() => {
+    setIsEditorReady(true);
+
     if (typeof window !== "undefined") {
       const savedUsername = localStorage.getItem("username");
       setUsername(savedUsername || "Guest");
+
+      // Load draft article jika ada
+      const savedDraft = localStorage.getItem("draftArticle");
+      if (savedDraft) {
+        const parsedDraft = JSON.parse(savedDraft);
+        setTitle(parsedDraft.title || "");
+        setContent(parsedDraft.content || "");
+        setCategoryId(parsedDraft.categoryId || "");
+      }
     }
+
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const draftData = {
+      title,
+      content,
+      categoryId,
+    };
+    localStorage.setItem("draftArticle", JSON.stringify(draftData));
+  }, [title, content, categoryId]);
 
   const fetchCategories = async () => {
     try {
@@ -73,34 +91,40 @@ export default function AddArticlePage() {
 
   const handleUpload = async () => {
     if (!title || !categoryId || !content || !thumbnailFile) {
-      alert("Please fill all fields before uploading.");
+      toast.error("Please fill all fields before uploading.");
       return;
     }
 
     try {
       setIsUploading(true);
 
-      // Step 1: Upload thumbnail
-      const formData = new FormData();
-      formData.append("file", thumbnailFile);
+      const uploadRes = await api.post("api/upload", thumbnailFile.name);
+      const uploadedThumbnailUrl = uploadRes.data.imageUrl;
 
-      const uploadRes = await api.post("api/upload", formData);
-      const uploadedThumbnailUrl = uploadRes.data.url;
-
-      // Step 2: Upload article
       const articleData = {
-        title,
-        content,
-        category_id: categoryId,
-        thumbnail: uploadedThumbnailUrl,
+        title: title.trim(),
+        content: content.trim(),
+        categoryId: String(categoryId),
       };
 
-      await api.post("api/articles", articleData);
+      console.log("Article Data:", articleData);
 
+      // PAKAI HEADER JSON
+      await api.post("api/articles", articleData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      toast.success("Article published successfully!");
+      localStorage.removeItem("draftArticle");
       router.push("/admin/articles");
     } catch (error: any) {
-      console.error(error);
-      alert("Failed to upload article. Please try again.");
+      console.error("Upload error:", error.response?.data || error.message);
+      alert(
+        error.response?.data?.message ||
+          "Failed to upload article. Please try again."
+      );
     } finally {
       setIsUploading(false);
     }
@@ -173,9 +197,7 @@ export default function AddArticlePage() {
       <div className="flex-1 bg-gray-50">
         {/* Topbar */}
         <div className="flex items-center justify-between p-4 shadow-sm bg-white">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-gray-700">Create Articles</h1>
-          </div>
+          <h1 className="text-xl font-bold text-gray-700">Create Articles</h1>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <div className="flex items-center gap-2 cursor-pointer">
@@ -195,20 +217,12 @@ export default function AddArticlePage() {
           </DropdownMenu>
         </div>
 
-        {/* Form Content */}
+        {/* Form */}
         <div className="p-8 space-y-8 max-w-5xl mx-auto">
           <div className="bg-white rounded-xl p-8 space-y-8 shadow">
-            <Button
-              variant="ghost"
-              className="flex items-center gap-2 text-gray-700"
-              onClick={() => router.push("/admin/articles")}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
             {/* Upload Thumbnail */}
             <div>
-              <h3 className="text-sm font-medium mb-2">Thumbnails</h3>
+              <h3 className="text-sm font-medium mb-2">Thumbnail</h3>
               <Card className="border border-gray-200 w-64">
                 <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                   {thumbnailUrl ? (
@@ -310,7 +324,7 @@ export default function AddArticlePage() {
 
             {/* Content */}
             <div>
-              {isEditorReady ? (
+              {isEditorReady && (
                 <Editor
                   onInit={(evt, editor) => (editorRef.current = editor)}
                   value={content}
@@ -325,8 +339,6 @@ export default function AddArticlePage() {
                       "advcode",
                       "advtable",
                       "autolink",
-                      "checklist",
-                      "export",
                       "lists",
                       "link",
                       "image",
@@ -335,7 +347,6 @@ export default function AddArticlePage() {
                       "anchor",
                       "searchreplace",
                       "visualblocks",
-                      "powerpaste",
                       "fullscreen",
                       "formatpainter",
                       "insertdatetime",
@@ -345,33 +356,49 @@ export default function AddArticlePage() {
                       "wordcount",
                     ],
                     toolbar:
-                      "undo redo | casechange blocks | bold italic backcolor | " +
-                      "alignleft aligncenter alignright alignjustify | " +
-                      "bullist numlist checklist outdent indent | removeformat | a11ycheck code table help",
+                      "undo redo | formatpainter | bold italic backcolor | alignleft aligncenter alignright | bullist numlist | removeformat | help",
                     content_style:
                       "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
                   }}
                 />
-              ) : null}
+              )}
             </div>
 
-            {/* Buttons */}
-            <div className="flex justify-end gap-4">
+            {/* Action Buttons */}
+            <div className="flex justify-end items-center mt-8 gap-4">
+              {/* Cancel */}
               <Button
                 type="button"
                 variant="outline"
-                onClick={handlePreview}
+                onClick={() => router.push("/admin/articles")}
                 disabled={isUploading}
+                className="w-32"
               >
-                Preview
+                Cancel
               </Button>
-              <Button
-                type="button"
-                onClick={handleUpload}
-                disabled={isUploading}
-              >
-                {isUploading ? "Uploading..." : "Publish"}
-              </Button>
+
+              <div className="flex gap-4">
+                {/* Preview */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePreview}
+                  disabled={isUploading}
+                >
+                  Preview
+                </Button>
+
+                {/* Publish */}
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={handleUpload}
+                  disabled={isUploading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isUploading ? "Uploading..." : "Publish"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

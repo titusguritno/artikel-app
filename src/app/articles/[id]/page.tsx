@@ -71,6 +71,8 @@ export default function ArticleDetailPage() {
   };
 
   const handleBack = () => {
+    const role = localStorage.getItem("role")?.toLowerCase() || "user";
+    console.log("Role di handleBack:", role);
     if (role === "admin") {
       router.push("/admin/articles");
     } else {

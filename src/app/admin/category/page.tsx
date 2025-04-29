@@ -18,6 +18,7 @@ import { debounce } from "lodash";
 import AddCategoryDialog from "@/components/modals/AddCategory"; // import komponen
 import { toast } from "sonner"; // untuk notifikasi
 import EditategoryDialog from "@/components/modals/EditCategory";
+import DeleteModal from "@/components/modals/delete";
 
 interface Category {
   id: number;
@@ -38,6 +39,10 @@ export default function CategoryDashboard() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState({ id: 0, name: "" });
   const [editedCategoryName, setEditedCategoryName] = useState("");
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -113,8 +118,37 @@ export default function CategoryDashboard() {
     setEditedCategoryName(value); // This updates the state with the value from child
   };
 
+  const handleDeleteCategory = async (id: number) => {
+    try {
+      await api.delete(`/api/categories/${id}`);
+      toast("Category deleted", {
+        description: `Category with ID ${id} has been deleted.`,
+      });
+      fetchCategories(); // Refresh the list
+    } catch (error) {
+      toast("Failed to delete category", {
+        description: "Something went wrong. Please try again.",
+      });
+    }
+  };
+  const openDeleteModal = (id: number) => {
+    setSelectedCategoryId(id);
+    setIsDeleteOpen(true);
+  };
+
   return (
     <div className="flex min-h-screen">
+      <DeleteModal
+        open={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={() => {
+          if (selectedCategoryId !== null) {
+            handleDeleteCategory(selectedCategoryId);
+            setIsDeleteOpen(false);
+          }
+        }}
+      />
+
       <EditategoryDialog
         open={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
@@ -263,7 +297,12 @@ export default function CategoryDashboard() {
                       >
                         Edit
                       </Button>
-                      <Button variant="link" size="sm" className="text-red-500">
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="text-red-500"
+                        onClick={() => openDeleteModal(category.id)}
+                      >
                         Delete
                       </Button>
                     </td>

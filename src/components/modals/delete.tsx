@@ -17,7 +17,7 @@ interface DeleteArticleModalProps {
   onConfirm: () => void;
 }
 
-export default function DeleteArticleModal({
+export default function DeleteModal({
   open,
   onClose,
   onConfirm,

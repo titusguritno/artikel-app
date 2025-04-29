@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { debounce } from "lodash";
 import Logout from "@/components/modals/logout";
-import DeleteArticleModal from "@/components/modals/delete";
+import DeleteModal from "@/components/modals/delete";
 import { toast } from "sonner";
 // import { error } from "console";
 
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
 
   const handleDelete = async (id: string | number | null) => {
     // if (selectedArticleId) return;
-    // console.log(id);
+    console.log(id);
     // return;
     try {
       await api.delete(`/api/articles/${id}`);
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen">
-      <DeleteArticleModal
+      <DeleteModal
         open={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={() => handleDelete(selectedArticleId)}

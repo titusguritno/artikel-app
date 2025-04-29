@@ -22,6 +22,9 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { debounce } from "lodash";
 import Logout from "@/components/modals/logout";
+import DeleteArticleModal from "@/components/modals/delete";
+import { toast } from "sonner";
+// import { error } from "console";
 
 interface Article {
   id: number;
@@ -41,6 +44,10 @@ export default function AdminDashboard() {
   const [totalData, setTotalData] = useState(0);
   const [username, setUsername] = useState("");
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedArticleId, setSelectedArticleId] = useState<
+    number | string | null
+  >(null);
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -81,8 +88,34 @@ export default function AdminDashboard() {
     router.push("/login");
   };
 
+  const handleDelete = async (id: string | number | null) => {
+    // if (selectedArticleId) return;
+    // console.log(id);
+    // return;
+    try {
+      await api.delete(`/api/articles/${id}`);
+      toast("Article deleted", {
+        description: "The article has been successfully removed.",
+      });
+      fetchArticles();
+    } catch (err) {
+      console.error("Delete faild", err);
+      toast("Failed delete", {
+        description: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsDeleteOpen(false);
+      setSelectedArticleId(null);
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
+      <DeleteArticleModal
+        open={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={() => handleDelete(selectedArticleId)}
+      />
       {/* Logout Modal */}
       <Logout
         open={isLogoutOpen}
@@ -263,7 +296,15 @@ export default function AdminDashboard() {
                       >
                         Edit
                       </Button>
-                      <Button variant="link" size="sm" className="text-red-500">
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="text-red-500"
+                        onClick={() => {
+                          setSelectedArticleId(article.id);
+                          setIsDeleteOpen(true);
+                        }}
+                      >
                         Delete
                       </Button>
                     </td>

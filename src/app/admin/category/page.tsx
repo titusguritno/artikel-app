@@ -15,6 +15,9 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import Logout from "@/components/modals/logout";
 import { debounce } from "lodash";
+import AddCategoryDialog from "@/components/modals/AddCategory"; // import komponen
+import { toast } from "sonner"; // untuk notifikasi
+import EditategoryDialog from "@/components/modals/EditCategory";
 
 interface Category {
   id: number;
@@ -31,6 +34,10 @@ export default function CategoryDashboard() {
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState({ id: 0, name: "" });
+  const [editedCategoryName, setEditedCategoryName] = useState("");
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -73,8 +80,56 @@ export default function CategoryDashboard() {
     router.push("/login");
   };
 
+  const handleAddCategory = async (name: string) => {
+    try {
+      await api.post("/api/categories", { name });
+      toast("Category added", {
+        description: `Category "${name}" has been created.`,
+      });
+      fetchCategories();
+    } catch (error) {
+      toast("Failed to add category", {
+        description: "Something went wrong. Please try again.",
+      });
+    }
+  };
+
+  const handleEditCategory = async (id: any, name: string) => {
+    try {
+      await api.put(`/api/categories/${id}`, { name });
+      toast("Category edited", {
+        description: `Category "${id}" has been edited.`,
+      });
+      setIsEditDialogOpen(false);
+      fetchCategories();
+    } catch (error) {
+      toast("Failed to edit category", {
+        description: "Something went wrong. Please try again.",
+      });
+    }
+  };
+
+  const handleEditFromModal = (value: string) => {
+    setEditedCategoryName(value); // This updates the state with the value from child
+  };
+
   return (
     <div className="flex min-h-screen">
+      <EditategoryDialog
+        open={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onSubmit={() =>
+          handleEditCategory(selectedCategory.id, editedCategoryName)
+        }
+        categoryName={selectedCategory.name}
+        onSendData={handleEditFromModal}
+      />
+      <AddCategoryDialog
+        open={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        onSubmit={handleAddCategory}
+      />
+
       <Logout
         open={isLogoutOpen}
         onClose={() => setIsLogoutOpen(false)}
@@ -171,7 +226,7 @@ export default function CategoryDashboard() {
             </div>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg whitespace-nowrap"
-              onClick={() => router.push("/admin/category/add")}
+              onClick={() => setIsAddDialogOpen(true)}
             >
               + Add Category
             </Button>
@@ -198,9 +253,13 @@ export default function CategoryDashboard() {
                       <Button
                         variant="link"
                         size="sm"
-                        onClick={() =>
-                          router.push(`/admin/category/edit/${category.id}`)
-                        }
+                        onClick={() => {
+                          setIsEditDialogOpen(true);
+                          setSelectedCategory({
+                            id: category.id,
+                            name: category.name,
+                          });
+                        }}
                       >
                         Edit
                       </Button>

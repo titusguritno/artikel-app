@@ -1,7 +1,7 @@
 "use client";
 
 import { LayoutGrid, Tags, LogOut } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -41,21 +41,25 @@ export default function CategoryDashboard() {
     fetchCategories();
   }, [page, debouncedSearch]);
 
+  const debounceSearchHandler = useCallback(
+    debounce((value) => {
+      setDebouncedSearch(value);
+    }, 500),
+    []
+  );
+
   useEffect(() => {
-    const handler = debounce(() => {
-      setDebouncedSearch(search);
-    }, 500);
-    handler();
-    return () => handler.cancel();
-  }, [search]);
+    debounceSearchHandler(search);
+  }, [search, debounceSearchHandler]);
 
   const fetchCategories = async () => {
     try {
       const res = await api.get("api/categories", {
         params: { page, limit: 10, search: debouncedSearch },
       });
+
       setCategories(res.data.data);
-      setTotalData(res.data.total);
+      setTotalData(res.data.totalData);
     } catch (error) {
       console.error(error);
     }
@@ -86,7 +90,7 @@ export default function CategoryDashboard() {
           <Button
             variant="ghost"
             className="justify-start gap-3 text-white hover:bg-blue-700"
-            onClick={() => router.push("/admin/articles")}
+            onClick={() => router.push("/admin")}
           >
             {" "}
             <LayoutGrid size={18} /> <span>Articles</span>{" "}

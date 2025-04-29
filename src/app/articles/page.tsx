@@ -189,6 +189,9 @@ export default function ArticlesPage() {
                 <SelectItem value="Tech">Technology</SelectItem>
                 <SelectItem value="Design">Design</SelectItem>
                 <SelectItem value="Education">Education</SelectItem>
+                <SelectItem value="Health">Health</SelectItem>
+                <SelectItem value="Education">Education</SelectItem>
+                <SelectItem value="Politic">Politic</SelectItem>
                 <SelectItem value="Business">Business</SelectItem>
                 <SelectItem value="Sport">Sport</SelectItem>
                 <SelectItem value="Entertainment">Entertainment</SelectItem>

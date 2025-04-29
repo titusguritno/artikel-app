@@ -12,10 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LogOut, ArrowLeft } from "lucide-react";
 import axios from "axios";
-import { LogOut } from "lucide-react";
 import Logout from "@/components/modals/logout";
-
 interface UserData {
   id: string;
   username: string;
@@ -72,7 +71,21 @@ export default function ProfilePage() {
   }, []);
 
   const handleBack = () => {
-    router.push("/articles");
+    const role = localStorage.getItem("role");
+
+    if (role === "Admin") {
+      router.push("/admin/articles");
+    } else {
+      router.push("/articles");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("password");
+    localStorage.removeItem("role");
+    router.push("/login");
   };
 
   if (loading) {
@@ -96,49 +109,65 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Modal Logout */}
+      <Logout
+        open={isLogoutOpen}
+        onClose={() => setIsLogoutOpen(false)}
+        onConfirm={handleLogout}
+      />
+
       {/* Navbar */}
-      <header className="flex justify-between items-center px-8 py-6 bg-white border-b">
-        <img
-          src="/assets/logoipsum.svg"
-          alt="Logo"
-          className="w-25 h-auto object-contain"
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="flex items-center gap-2 px-2 py-1 hover:bg-gray-500 rounded-md"
-            >
-              <Avatar className="w-8 h-8 bg-blue-200">
-                <AvatarFallback className="text-gray-700 font-semibold text-sm">
-                  {userData.username
-                    ? userData.username.charAt(0).toUpperCase()
-                    : "G"}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-bold text-black underline">
-                {userData.username}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="w-44 rounded-md shadow-md bg-white py-2"
+      <header className="flex justify-between items-center px-6 py-4 border-b bg-white">
+        <div className="flex items-center gap-2">
+          {/* Back Button */}
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2 text-gray-700 hover:text-black transition-all"
+            onClick={handleBack}
           >
-            <DropdownMenuItem
-              className="text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-              onClick={() => router.push("/profile")}
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 px-2 py-1 hover:bg-gray-500 rounded-md"
+              >
+                <Avatar className="w-8 h-8 bg-blue-200">
+                  <AvatarFallback className="text-gray-700 font-semibold text-sm">
+                    {userData.username
+                      ? userData.username.charAt(0).toUpperCase()
+                      : "G"}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-bold text-black underline">
+                  {userData.username || "Guest"}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-44 rounded-md shadow-md bg-white py-2"
             >
-              My Account
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-sm text-red-500 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
-              onClick={() => setIsLogoutOpen(true)}
-            >
-              <LogOut size={16} /> Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuItem
+                className="text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                onClick={() => router.push("/profile")}
+              >
+                My Account
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-sm text-red-500 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                onClick={() => setIsLogoutOpen(true)}
+              >
+                <LogOut size={16} /> Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       {/* Profile Content */}
@@ -181,13 +210,6 @@ export default function ProfilePage() {
                 <Input type="text" value={userData.role} readOnly />
               </div>
             </div>
-
-            <Button
-              onClick={handleBack}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
-            >
-              Back to Home
-            </Button>
           </CardContent>
         </Card>
       </main>

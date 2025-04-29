@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef } from "react";
-import { LayoutGrid, Tags, LogOut } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
+import { LayoutGrid, Tags, LogOut, ImageIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Editor } from "@tinymce/tinymce-react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,12 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
-import { Editor } from "@tinymce/tinymce-react";
-import api from "@/lib/axios";
-import Logout from "@/components/modals/logout";
 import { Card, CardContent } from "@/components/ui/card";
-import { ImageIcon } from "lucide-react";
+
+import Logout from "@/components/modals/logout";
+import api from "@/lib/axios";
 
 export default function AddArticlePage() {
   const router = useRouter();
@@ -40,17 +40,15 @@ export default function AddArticlePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [shortDescription, setShortDescription] = useState("");
   const [isEditorReady, setIsEditorReady] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const editorRef = useRef(null);
 
   useEffect(() => {
     setIsEditorReady(true);
-
     if (typeof window !== "undefined") {
       const savedUsername = localStorage.getItem("username");
       setUsername(savedUsername || "Guest");
-
-      // Load draft article jika ada
       const savedDraft = localStorage.getItem("draftArticle");
       if (savedDraft) {
         const parsedDraft = JSON.parse(savedDraft);
@@ -59,16 +57,11 @@ export default function AddArticlePage() {
         setCategoryId(parsedDraft.categoryId || "");
       }
     }
-
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    const draftData = {
-      title,
-      content,
-      categoryId,
-    };
+    const draftData = { title, content, categoryId };
     localStorage.setItem("draftArticle", JSON.stringify(draftData));
   }, [title, content, categoryId]);
 
@@ -94,28 +87,20 @@ export default function AddArticlePage() {
       toast.error("Please fill all fields before uploading.");
       return;
     }
-
     try {
       setIsUploading(true);
-
       const uploadRes = await api.post("api/upload", thumbnailFile.name);
       const uploadedThumbnailUrl = uploadRes.data.imageUrl;
-
       const articleData = {
         title: title.trim(),
         content: content.trim(),
         categoryId: String(categoryId),
       };
-
-      console.log("Article Data:", articleData);
-
-      // PAKAI HEADER JSON
       await api.post("api/articles", articleData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
-
       toast.success("Article published successfully!");
       localStorage.removeItem("draftArticle");
       router.push("/admin/articles");
@@ -135,16 +120,14 @@ export default function AddArticlePage() {
       alert("Please fill title and content first.");
       return;
     }
-
     const previewData = {
-      title: title,
+      title,
       image: thumbnailUrl || "https://via.placeholder.com/800x400",
       created_at: new Date().toISOString(),
       short_description:
         shortDescription || "This is a short description preview.",
-      content: content,
+      content,
     };
-
     localStorage.setItem("previewArticle", JSON.stringify(previewData));
     router.push("/admin/articles/preview");
   };
@@ -156,7 +139,7 @@ export default function AddArticlePage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col md:flex-row relative">
       <Logout
         open={isLogoutOpen}
         onClose={() => setIsLogoutOpen(false)}
@@ -164,32 +147,56 @@ export default function AddArticlePage() {
       />
 
       {/* Sidebar */}
-      <div className="w-60 bg-blue-600 text-white flex flex-col py-6">
-        <div className="px-6 mb-10">
-          <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
-        </div>
-        <div className="flex flex-col gap-2 px-4">
-          <Button
-            variant="ghost"
-            className="justify-start gap-3 text-white hover:bg-blue-700"
-            onClick={() => router.push("/admin/articles")}
-          >
-            <LayoutGrid size={18} /> Articles
-          </Button>
-          <Button
-            variant="ghost"
-            className="justify-start gap-3 text-white hover:bg-blue-700"
-            onClick={() => router.push("/admin/category")}
-          >
-            <Tags size={18} /> Category
-          </Button>
-          <Button
-            variant="ghost"
-            className="justify-start gap-3 text-white hover:bg-blue-700 mt-2"
-            onClick={() => setIsLogoutOpen(true)}
-          >
-            <LogOut size={18} /> Logout
-          </Button>
+      <div
+        className={`sticky top-0 h-screen bg-white md:bg-blue-600 w-64 transform transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
+        <div className="flex flex-col items-start py-6 px-6 text-gray-800 md:text-white">
+          <div className="mb-6 w-full flex justify-between items-center md:justify-start">
+            <img src="/assets/logoipsum2.svg" alt="Logo" className="h-10" />
+            <button
+              className="md:hidden block"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            <Button
+              variant="ghost"
+              className="justify-start gap-3 text-inherit hover:bg-blue-700 w-full"
+              onClick={() => router.push("/admin/articles")}
+            >
+              <LayoutGrid size={18} /> Articles
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start gap-3 text-inherit hover:bg-blue-700 w-full"
+              onClick={() => router.push("/admin/category")}
+            >
+              <Tags size={18} /> Category
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start gap-3 text-inherit hover:bg-blue-700 w-full mt-2"
+              onClick={() => setIsLogoutOpen(true)}
+            >
+              <LogOut size={18} /> Logout
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -197,7 +204,27 @@ export default function AddArticlePage() {
       <div className="flex-1 bg-gray-50">
         {/* Topbar */}
         <div className="flex items-center justify-between p-4 shadow-sm bg-white">
-          <h1 className="text-xl font-bold text-gray-700">Create Articles</h1>
+          <div className="flex items-center gap-4">
+            <button
+              className="md:hidden block text-gray-700"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+            <h1 className="text-xl font-bold text-gray-700">Create Articles</h1>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <div className="flex items-center gap-2 cursor-pointer">
@@ -218,12 +245,12 @@ export default function AddArticlePage() {
         </div>
 
         {/* Form */}
-        <div className="p-8 space-y-8 max-w-5xl mx-auto">
-          <div className="bg-white rounded-xl p-8 space-y-8 shadow">
+        <div className="p-4 md:p-8 space-y-8 max-w-5xl mx-auto w-full">
+          <div className="bg-white rounded-xl p-6 md:p-8 space-y-8 shadow">
             {/* Upload Thumbnail */}
             <div>
               <h3 className="text-sm font-medium mb-2">Thumbnail</h3>
-              <Card className="border border-gray-200 w-64">
+              <Card className="border border-gray-200 w-full max-w-xs">
                 <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                   {thumbnailUrl ? (
                     <div className="relative w-full h-32">
@@ -236,11 +263,9 @@ export default function AddArticlePage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            document
-                              .getElementById("thumbnail-upload")
-                              ?.click();
-                          }}
+                          onClick={() =>
+                            document.getElementById("thumbnail-upload")?.click()
+                          }
                         >
                           Change
                         </Button>
@@ -276,9 +301,7 @@ export default function AddArticlePage() {
                           accept=".jpg,.jpeg,.png"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) {
-                              handleThumbnailChange(file);
-                            }
+                            if (file) handleThumbnailChange(file);
                           }}
                         />
                       </label>
@@ -305,7 +328,7 @@ export default function AddArticlePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Category
               </label>
-              <Select onValueChange={setCategoryId}>
+              <Select onValueChange={setCategoryId} value={categoryId}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -365,36 +388,34 @@ export default function AddArticlePage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end items-center mt-8 gap-4">
-              {/* Cancel */}
+            <div className="flex flex-col md:flex-row justify-end items-stretch md:items-center mt-8 gap-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.push("/admin/articles")}
                 disabled={isUploading}
-                className="w-32"
+                className="w-full md:w-32"
               >
                 Cancel
               </Button>
 
-              <div className="flex gap-4">
-                {/* Preview */}
+              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handlePreview}
                   disabled={isUploading}
+                  className="w-full md:w-auto"
                 >
                   Preview
                 </Button>
 
-                {/* Publish */}
                 <Button
                   type="button"
                   variant="default"
                   onClick={handleUpload}
                   disabled={isUploading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   {isUploading ? "Uploading..." : "Publish"}
                 </Button>

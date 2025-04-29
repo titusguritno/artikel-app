@@ -50,12 +50,12 @@ export default function ArticlePreviewPage() {
   useEffect(() => {
     async function fetchArticles() {
       try {
-        const res = await api.get("api/articles"); // Fetch semua artikel
-        const data: Article[] = res.data.data; // Sesuaikan structure API kamu
+        const res = await api.get("api/articles");
+        const data: Article[] = res.data.data;
 
         const filtered = data.filter((a) => a.title !== article?.title);
 
-        setOtherArticles(filtered.slice(0, 3)); // TAMPILKAN maksimal 3 artikel
+        setOtherArticles(filtered.slice(0, 3));
       } catch (error) {
         console.error("Failed to fetch articles:", error);
       } finally {

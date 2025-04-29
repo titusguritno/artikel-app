@@ -24,12 +24,11 @@ import { toast } from "sonner";
 import { LayoutGrid, Tags, LogOut, ImageIcon } from "lucide-react";
 import api from "@/lib/axios";
 import Logout from "@/components/modals/logout";
-// import { cookies } from "next/headers";
 
 export default function EditArticlePage() {
   const router = useRouter();
   const params = useParams();
-  const id = Array.isArray(params.id) ? params.id[0] : params.id; // pastikan id berupa string
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const editorRef = useRef<any>(null);
 
@@ -42,20 +41,13 @@ export default function EditArticlePage() {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // tambahan loading state
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // const cookieStore = cookies();
-    // const allCookies = document.cookie;
-    // console.log(allCookies);
-
     if (!id) return;
 
     const savedUsername = localStorage.getItem("username");
     if (savedUsername) setUsername(savedUsername);
-    // console.log(savedUsername);
-    // console.log("DEBUG id:", id); // ➔ tambahkan ini
-
     fetchArticle();
     fetchCategories();
   }, [id]);
@@ -63,9 +55,7 @@ export default function EditArticlePage() {
   const fetchArticle = async () => {
     try {
       const res = await api.get(`/api/articles/${id}`);
-      // console.log(res.data);
       const data = res.data;
-      // console.log("DEBUG Artikel data:", data); // Debugging penting
 
       if (!data) {
         toast.error("Article not found.");
@@ -80,7 +70,7 @@ export default function EditArticlePage() {
       if (data.image) {
         setThumbnailUrl(data.image);
       } else {
-        setThumbnailUrl(null); // Atau kasih default thumbnail
+        setThumbnailUrl(null);
       }
       setIsLoading(false);
     } catch (error: any) {
@@ -130,7 +120,7 @@ export default function EditArticlePage() {
         title: title.trim(),
         content: content.trim(),
         categoryId: String(categoryId),
-        imageUrl: uploadedThumbnailUrl, // pastikan gambar juga diupdate
+        imageUrl: uploadedThumbnailUrl,
       };
 
       await api.put(`/api/articles/${id}`, updatedArticle, {
@@ -236,7 +226,7 @@ export default function EditArticlePage() {
                   {thumbnailUrl ? (
                     <div className="relative w-full h-32">
                       <img
-                        src={thumbnailUrl || "/default-thumbnail.jpg"} // fallback
+                        src={thumbnailUrl || "/default-thumbnail.jpg"}
                         alt="Thumbnail preview"
                         className="w-full h-full object-contain"
                       />

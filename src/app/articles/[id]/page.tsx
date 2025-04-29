@@ -43,7 +43,7 @@ export default function ArticleDetailPage() {
         setArticle(res.data);
 
         const others = await api.get(`/api/articles`, {
-          params: { limit: 4 }, // Bisa diubah limitnya
+          params: { limit: 4 },
         });
 
         const filteredOthers = others.data.data.filter(

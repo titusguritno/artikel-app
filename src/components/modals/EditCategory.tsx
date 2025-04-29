@@ -29,27 +29,19 @@ export default function EditCategoryDialog({
   const [edited, setEdited] = useState("");
   const [error, setError] = useState("");
 
-  //   const sendDataToParent = (value) => {
-  //     setEdited(value); // Call the parent callback with the value
-  //   };
-
   const handleSubmit = async () => {
     if (!categoryName.trim()) {
       setError("Category name is required.");
       return;
     }
 
-    // onSendData(edited);
-    // sendDataToParent(edited);
-    setError(""); // clear error
+    setError("");
     onSubmit();
     setEdited("");
-    // setCategoryName("");
     onClose();
   };
 
   const handleCancel = () => {
-    // setCategoryName("");
     setError("");
     onClose();
   };
@@ -68,7 +60,6 @@ export default function EditCategoryDialog({
             onChange={(e) => {
               setEdited(e.target.value);
               onSendData(e.target.value);
-              //   setCategoryName(e.target.value);
               if (error) setError("");
             }}
             className={error ? "border-red-500" : ""}

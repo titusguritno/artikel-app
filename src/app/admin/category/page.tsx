@@ -15,8 +15,8 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import Logout from "@/components/modals/logout";
 import { debounce } from "lodash";
-import AddCategoryDialog from "@/components/modals/AddCategory"; // import komponen
-import { toast } from "sonner"; // untuk notifikasi
+import AddCategoryDialog from "@/components/modals/AddCategory";
+import { toast } from "sonner";
 import EditategoryDialog from "@/components/modals/EditCategory";
 import DeleteModal from "@/components/modals/delete";
 
@@ -115,7 +115,7 @@ export default function CategoryDashboard() {
   };
 
   const handleEditFromModal = (value: string) => {
-    setEditedCategoryName(value); // This updates the state with the value from child
+    setEditedCategoryName(value);
   };
 
   const handleDeleteCategory = async (id: number) => {
@@ -124,7 +124,7 @@ export default function CategoryDashboard() {
       toast("Category deleted", {
         description: `Category with ID ${id} has been deleted.`,
       });
-      fetchCategories(); // Refresh the list
+      fetchCategories();
     } catch (error) {
       toast("Failed to delete category", {
         description: "Something went wrong. Please try again.",

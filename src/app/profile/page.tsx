@@ -15,7 +15,6 @@ import {
 import { LogOut, ArrowLeft } from "lucide-react";
 import axios from "axios";
 import Logout from "@/components/modals/logout";
-
 interface UserData {
   id: string;
   username: string;
